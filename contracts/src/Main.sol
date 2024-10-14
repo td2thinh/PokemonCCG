@@ -1,17 +1,26 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8;
+pragma solidity ^0.8.0;
 
 import "./Collection.sol";
 
 contract Main {
-  int private count;
-  mapping(int => Collection) private collections;
+    int private collectionCount;
+    mapping(int => Collection) private collections;
 
-  constructor() {
-    count = 0;
-  }
+    event CollectionCreated(string name, uint256 cardCount);
 
-  function createCollection(string calldata name, int cardCount) external {
-    collections[count++] = new Collection(name, cardCount);
-  }
+    constructor() {
+        collectionCount = 0;
+    }
+
+    function createCollection(string calldata name, uint256 cardCount) external {
+        collections[collectionCount] = new Collection(name, cardCount);
+        emit CollectionCreated(name, cardCount);
+        collectionCount++;
+    }
+
+    function getCollection(int index) public view returns (Collection) {
+        require(index >= 0 && index < collectionCount, "Invalid collection index");
+        return collections[index];
+    }
 }
