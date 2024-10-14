@@ -8,7 +8,6 @@ const useAffect = (
   asyncEffect: () => Promise<Canceler | void>,
   dependencies: any[] = []
 ) => {
-
   const cancelerRef = useRef<Canceler | void>()
   useEffect(() => {
     asyncEffect()
@@ -42,34 +41,9 @@ const useWallet = () => {
 
 export const App = () => {
   const wallet = useWallet()
-
-  useEffect(() => {
-    console.log("New  Created:", name, "with card count:");
-
-    if (!wallet || !wallet.contract) return; // Assurez-vous que le portefeuille et le contrat sont disponibles
-
-    const { contract } = wallet;
-
-    // Écoute l'événement "CollectionCreated"
-    contract.on("CollectionCreated", (name: string, cardCount: number) => {
-      console.log("New truc Created:", name, "with card count:", cardCount.toString());
-      // Vous pouvez aussi afficher un message dans l'interface si nécessaire
-      // alert(`New Collection Created: ${name} with card count: ${cardCount.toString()}`);
-    });
-
-    console.log("Listening for CollectionCreated events...");
-
-    // Fonction de nettoyage pour éviter les fuites de mémoire
-    // return () => {
-    //   contract.off("CollectionCreated"); // Déconnexion de l'événement
-    // };
-  }, [wallet]); // Dépendance sur le portefeuille
-
-
   return (
     <div className={styles.body}>
       <h1>Welcome to Pokémon TCG</h1>
-      
     </div>
   )
 }

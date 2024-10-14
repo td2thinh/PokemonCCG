@@ -2,10 +2,11 @@
 pragma solidity ^0.8.0;
 
 import "./Collection.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract Main {
-    int private collectionCount;
-    mapping(int => Collection) private collections;
+contract Main is Ownable {
+    uint private collectionCount;
+    mapping(uint => Collection) private collections;
 
     event CollectionCreated(string name, uint256 cardCount);
 
@@ -13,13 +14,16 @@ contract Main {
         collectionCount = 0;
     }
 
-    function createCollection(string calldata name, uint256 cardCount) external {
-        collections[collectionCount] = new Collection(name, cardCount);
+    // Fonction pour créer une nouvelle collection (seulement le propriétaire peut l'appeler)
+    function createCollection(string calldata name, uint256 cardCount, address cardContract) external onlyOwner {
+        Collection newCollection = new Collection(name, cardCount, cardContract);
+        collections[collectionCount] = newCollection;
         emit CollectionCreated(name, cardCount);
         collectionCount++;
     }
 
-    function getCollection(int index) public view returns (Collection) {
+    // Récupérer une collection par son index
+    function getCollection(uint index) public view returns (Collection) {
         require(index >= 0 && index < collectionCount, "Invalid collection index");
         return collections[index];
     }

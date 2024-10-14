@@ -1,37 +1,39 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
+import "./Card.sol";
 
-contract Collection is ERC721URIStorage {
-    using Counters for Counters.Counter;
-    
-    struct CardMetadata {
-        uint256 cardId;
-        string img;
-    }
-
+contract Collection {
     string public collectionName;
     uint256 public cardCount;
-    Counters.Counter private _tokenIdCounter;
+    address public cardContract;
+    uint256 public nextCardId;
 
-    event CardMinted(uint256 cardId, string img);
+    event CollectionCreated(string name, uint256 cardCount);
+    event CardMinted(uint256 cardId);
 
-    constructor(string memory _collectionName, uint256 _cardCount) ERC721("CollectibleCard", "CCARD") {
+    constructor(string memory _collectionName, uint256 _cardCount, address _cardContract) {
         collectionName = _collectionName;
         cardCount = _cardCount;
+        cardContract = _cardContract; 
+        emit CollectionCreated(_collectionName, _cardCount);
     }
 
+    // Fonction pour mint une carte dans la collection
     function mintCard(string memory img) public {
-        require(_tokenIdCounter.current() < cardCount, "All cards have been minted");
+        require(nextCardId < cardCount, "All cards have been minted");
 
-        _tokenIdCounter.increment();
-        uint256 cardId = _tokenIdCounter.current();
+        // Appeler le contrat Card pour mint une nouvelle carte
+        Card card = Card(cardContract);
+        uint256 cardId = card.mintCard(msg.sender, img); // Mint une carte NFT avec l'URL de l'image
 
-        _mint(msg.sender, cardId);
-        _setTokenURI(cardId, img); 
+        emit CardMinted(cardId);
+        nextCardId++;
+    }
 
-        emit CardMinted(cardId, img);
+    // Get Card by id
+    function getCard(uint256 cardId) public view returns (string memory) {
+        Card card = Card(cardContract);
+        return card.tokenURI(cardId);
     }
 }
