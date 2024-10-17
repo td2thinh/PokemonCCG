@@ -15,7 +15,7 @@ contract Main is Ownable {
     }
 
     // Fonction pour créer une nouvelle collection (seulement le propriétaire peut l'appeler)
-    function createCollection(string calldata name, uint256 cardCount, address cardContract) external onlyOwner {
+    function createCollection(string calldata name, uint256 cardCount, address cardContract) external  {
         Collection newCollection = new Collection(name, cardCount, cardContract);
         collections[collectionCount] = newCollection;
         emit CollectionCreated(name, cardCount);

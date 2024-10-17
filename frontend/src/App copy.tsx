@@ -23,67 +23,31 @@ const useAffect = (
   }, dependencies);
 };
 
-// const useWallet = () => {
-//   const [details, setDetails] = useState<ethereum.Details>();
-//   const [contract, setContract] = useState<main.Main>();
-
-//   useAffect(async () => {
-//     const details_ = await ethereum.connect('metamask');
-//     if (!details_) return;
-//     setDetails(details_);
-//     const contract_ = await main.init(details_);
-//     if (!contract_) return;
-//     setContract(contract_);
-//   }, []);
-
-//   return useMemo(() => {
-//     if (!details || !contract) return;
-//     return { details, contract };
-//   }, [details, contract]);
-// };
-
 const useWallet = () => {
   const [details, setDetails] = useState<ethereum.Details>();
   const [contract, setContract] = useState<main.Main>();
-  const [isConnected, setIsConnected] = useState(false);
 
-  const connectWallet = async () => {
-    console.log("Trying to connect wallet...");
+  useAffect(async () => {
     const details_ = await ethereum.connect('metamask');
-    if (!details_) {
-      console.log("No wallet details found.");
-      return;
-    }
-    console.log("Wallet connected:", details_);
+    if (!details_) return;
     setDetails(details_);
     const contract_ = await main.init(details_);
-    if (!contract_) {
-      console.log("Contract initialization failed.");
-      return;
-    }
+    if (!contract_) return;
     setContract(contract_);
-    setIsConnected(true);
-    console.log("Contract initialized:", contract_);
-  };
-
-  useEffect(() => {
-    connectWallet();
   }, []);
 
   return useMemo(() => {
-    if (!details ) return { isConnected, connectWallet };
-    return { details, contract, isConnected, connectWallet };
-  }, [details, contract, isConnected]);
+    if (!details || !contract) return;
+    return { details, contract };
+  }, [details, contract]);
 };
 
-//----
 export const App = () => {
   const wallet = useWallet();
-  // const [signers] = wallet.details.signers;
 
   // Fonction pour créer une nouvelle collection
   const handleCreateCollection = async () => {
-    if (wallet && wallet.contract) {
+    if (wallet) {
       try {
         // Passe un objet contenant 'from' au lieu de passer l'adresse directement
         await wallet.contract.createCollection('New Collection', 10, {
@@ -102,7 +66,7 @@ export const App = () => {
       {wallet ? (
         <>
           {/* Utiliser wallet.details.account au lieu de wallet.details.address */}
-          <p>Connected wallet: {wallet.details?.account}</p>
+          <p>Connected wallet: {wallet.details.account}</p>
           <button onClick={handleCreateCollection}>Create Collection</button>
         </>
       ) : (
