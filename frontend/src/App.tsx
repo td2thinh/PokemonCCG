@@ -41,21 +41,32 @@ const useWallet = () => {
 }
 
 export const App = () => {
+
+  const handleCreateCollection = async () => {
+    if (!wallet || !wallet.contract) return // Assurez-vous que le portefeuille et le contrat sont disponibles
+    await wallet.contract.createCollection("My DJASKDJSAK", 10)
+      .then((tx: any) => {
+        console.log("Transaction sent:", tx)
+      }
+      )
+  }
   const wallet = useWallet()
 
   useEffect(() => {
-    console.log("New  Created:", name, "with card count:");
 
     if (!wallet || !wallet.contract) return; // Assurez-vous que le portefeuille et le contrat sont disponibles
 
     const { contract } = wallet;
 
-    // Écoute l'événement "CollectionCreated"
+    //Écoute l'événement "CollectionCreated"
     contract.on("CollectionCreated", (name: string, cardCount: number) => {
       console.log("New truc Created:", name, "with card count:", cardCount.toString());
       // Vous pouvez aussi afficher un message dans l'interface si nécessaire
       // alert(`New Collection Created: ${name} with card count: ${cardCount.toString()}`);
     });
+
+
+
 
     console.log("Listening for CollectionCreated events...");
 
@@ -69,7 +80,8 @@ export const App = () => {
   return (
     <div className={styles.body}>
       <h1>Welcome to Pokémon TCG</h1>
-      
+      <button onClick={handleCreateCollection}>Create Collection</button>
+
     </div>
   )
 }
