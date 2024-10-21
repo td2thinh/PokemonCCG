@@ -1,87 +1,123 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import styles from './styles.module.css'
-import * as ethereum from '@/lib/ethereum'
-import * as main from '@/lib/main'
+import { useEffect, useMemo, useRef, useState } from 'react';
+import styles from './styles.module.css';
+import * as ethereum from '@/lib/ethereum';
+import * as main from '@/lib/main';
 
-type Canceler = () => void
+type Canceler = () => void;
+
 const useAffect = (
   asyncEffect: () => Promise<Canceler | void>,
   dependencies: any[] = []
 ) => {
-
-  const cancelerRef = useRef<Canceler | void>()
+  const cancelerRef = useRef<Canceler | void>();
   useEffect(() => {
     asyncEffect()
-      .then(canceler => (cancelerRef.current = canceler))
-      .catch(error => console.warn('Uncatched error', error))
+      .then((canceler) => (cancelerRef.current = canceler))
+      .catch((error) => console.warn('Uncaught error', error));
     return () => {
       if (cancelerRef.current) {
-        cancelerRef.current()
-        cancelerRef.current = undefined
+        cancelerRef.current();
+        cancelerRef.current = undefined;
       }
-    }
-  }, dependencies)
-}
+    };
+  }, dependencies);
+};
 
 const useWallet = () => {
-  const [details, setDetails] = useState<ethereum.Details>()
-  const [contract, setContract] = useState<main.Main>()
-  useAffect(async () => {
-    const details_ = await ethereum.connect('metamask')
-    if (!details_) return
-    setDetails(details_)
-    const contract_ = await main.init(details_)
-    if (!contract_) return
-    setContract(contract_)
-  }, [])
+  const [details, setDetails] = useState<ethereum.Details>();
+  const [contract, setContract] = useState<main.Main>();
+  const [isConnected, setIsConnected] = useState(false);
+
+  const connectWallet = async () => {
+    console.log('Trying to connect wallet...');
+    const details_ = await ethereum.connect('metamask');
+    if (!details_) {
+      console.log('No wallet details found.');
+      return;
+    }
+    console.log('Wallet connected:', details_);
+    setDetails(details_);
+    const contract_ = await main.init(details_);
+    if (!contract_) {
+      console.log('Contract initialization failed.');
+      return;
+    }
+    setContract(contract_);
+    setIsConnected(true);
+    console.log('Contract initialized:', contract_);
+  };
+
+  useEffect(() => {
+    connectWallet();
+  }, []);
+
   return useMemo(() => {
-    if (!details || !contract) return
-    return { details, contract }
-  }, [details, contract])
+    if (!details) return { isConnected, connectWallet };
+    return { details, contract, isConnected, connectWallet };
+  }, [details, contract, isConnected]);
+};
+
+
+//----
+
+const handleCreateCollection = async (contract: main.Main, name: string, cardCount: number, pokemonIds: string[]) => {
+  const tx = await contract.createCollection(name, cardCount, pokemonIds);
+  console.log('Transaction:', tx);
+}
+
+
+const handleCreateCard = async (contract: main.Main, to: string, collectionId: string, pokemonId: string, imageUrl: string) => {
+  const tx = await contract.mintAndAssign(to, collectionId, pokemonId, imageUrl);
+  console.log('Transaction:', tx);
+
+}
+
+const handleGetCard = async (contract: main.Main, tokenId: string) => {
+  const card = await contract.getCard(tokenId);
+  console.log('Card:', card);
 }
 
 export const App = () => {
-
-  const handleCreateCollection = async () => {
-    if (!wallet || !wallet.contract) return // Assurez-vous que le portefeuille et le contrat sont disponibles
-    await wallet.contract.createCollection("My DJASKDJSAK", 10)
-      .then((tx: any) => {
-        console.log("Transaction sent:", tx)
-      }
-      )
-  }
-  const wallet = useWallet()
+  const wallet = useWallet();
 
   useEffect(() => {
+    if (wallet.isConnected) {
+      const cancelAccountsChanged = ethereum.accountsChanged(() => {
+        wallet.connectWallet();
+      });
+      const cancelChainChanged = ethereum.chainChanged(() => {
+        wallet.connectWallet();
+      });
+      return () => {
+        cancelAccountsChanged();
+        cancelChainChanged();
+      };
+    }
+  }, [wallet.isConnected]);
 
-    if (!wallet || !wallet.contract) return; // Assurez-vous que le portefeuille et le contrat sont disponibles
-
-    const { contract } = wallet;
-
-    //Écoute l'événement "CollectionCreated"
-    contract.on("CollectionCreated", (name: string, cardCount: number) => {
-      console.log("New truc Created:", name, "with card count:", cardCount.toString());
-      // Vous pouvez aussi afficher un message dans l'interface si nécessaire
-      // alert(`New Collection Created: ${name} with card count: ${cardCount.toString()}`);
-    });
-
-
-
-
-    console.log("Listening for CollectionCreated events...");
-
-    // Fonction de nettoyage pour éviter les fuites de mémoire
-    // return () => {
-    //   contract.off("CollectionCreated"); // Déconnexion de l'événement
-    // };
-  }, [wallet]); // Dépendance sur le portefeuille
-
+  useEffect(() => {
+    if (wallet.isConnected) {
+      console.log('Connected to wallet:', wallet.details);
+    }
+  }, [wallet]);
 
   return (
     <div className={styles.body}>
       <h1>Welcome to Pokémon TCG</h1>
-      <button onClick={handleCreateCollection}>Create Collection</button>
-
+      {
+        wallet.isConnected ? (
+          <>
+            <p>
+              Your wallet address is: {wallet.details?.account}
+            </p>
+            <button onClick={() => handleCreateCollection(wallet.contract!, 'My Collection', 2, ['abc', 'xyz'])}>Create Collection</button>
+            <button onClick={() => handleCreateCard(wallet.contract!, wallet.details?.account || '', '0', 'abc', 'https://example.com/image.jpg')}>Create Card</button>
+            <button onClick={() => handleGetCard(wallet.contract!, '0')}>Get Card</button>
+          </>
+        ) : (
+          <button onClick={wallet.connectWallet}>Connect Wallet</button>
+        )
+      }
     </div>
-  )
-}
+  );
+};
