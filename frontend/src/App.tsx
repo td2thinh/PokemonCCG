@@ -2,7 +2,14 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import styles from './styles.module.css';
 import * as ethereum from '@/lib/ethereum';
 import * as main from '@/lib/main';
-
+import NavBar from './components/NavBar';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Manager from './pages/Owner/Manager';
+import Factory from './pages/Owner/Factory';
+import OwnerStore from './pages/Owner/OwnerStore';
+import Collection from './pages/User/Collection';
+import Marketplace from './pages/User/Marketplace';
+import UserStore from './pages/User/UserStore';
 type Canceler = () => void;
 
 const useAffect = (
@@ -101,23 +108,44 @@ export const App = () => {
     }
   }, [wallet]);
 
-  return (
-    <div className={styles.body}>
-      <h1>Welcome to Pokémon TCG</h1>
-      {
-        wallet.isConnected ? (
-          <>
-            <p>
-              Your wallet address is: {wallet.details?.account}
-            </p>
-            <button onClick={() => handleCreateCollection(wallet.contract!, 'My Collection', 2, ['abc', 'xyz'])}>Create Collection</button>
-            <button onClick={() => handleCreateCard(wallet.contract!, wallet.details?.account || '', '0', 'abc', 'https://example.com/image.jpg')}>Create Card</button>
-            <button onClick={() => handleGetCard(wallet.contract!, '0')}>Get Card</button>
-          </>
-        ) : (
-          <button onClick={wallet.connectWallet}>Connect Wallet</button>
-        )
-      }
-    </div>
-  );
+  if (!wallet.isConnected) {
+    return (
+      <div className={styles.container}>
+        <h1>Connect Wallet</h1>
+        <button onClick={wallet.connectWallet}>Connect Wallet</button>
+      </div>
+    );
+  }
+
+  else {
+    if (wallet.details?.account == wallet.contract?.account) {
+      return (
+        <div className={styles.container}>
+          <NavBar />
+          <BrowserRouter>
+            <Routes>
+              <Route path='/' element={<Manager />} />
+              <Route path='/factory' element={<Factory />} />
+              <Route path='/store' element={<OwnerStore />} />
+            </Routes>
+          </BrowserRouter>
+        </div>
+      );
+
+    }
+    else {
+      return (
+        <div className={styles.container}>
+          <NavBar />
+          <BrowserRouter>
+            <Routes>
+              <Route path='/' element={<Collection />} />
+              <Route path='/marketplace' element={<Marketplace />} />
+              <Route path='/store' element={<UserStore />} />
+            </Routes>
+          </BrowserRouter>
+        </div>
+      );
+    }
+  }
 };
