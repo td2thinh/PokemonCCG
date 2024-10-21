@@ -27,6 +27,10 @@ contract CardFactory is ERC721, ERC721Enumerable, Ownable {
         Ownable(initialOwner)
     {}
 
+    function getDeployer() public view returns (address) {
+        return owner();
+    }
+    
     function getCard(uint256 tokenId) public view returns (Card memory) {
         return _cards[tokenId];
     }

@@ -10,6 +10,7 @@ import OwnerStore from './pages/Owner/OwnerStore';
 import Collection from './pages/User/Collection';
 import Marketplace from './pages/User/Marketplace';
 import UserStore from './pages/User/UserStore';
+import { Contract } from 'ethers';
 type Canceler = () => void;
 
 const useAffect = (
@@ -56,7 +57,7 @@ const useWallet = () => {
 
   useEffect(() => {
     connectWallet();
-  }, []);
+  }, [isConnected]);
 
   return useMemo(() => {
     if (!details) return { isConnected, connectWallet };
@@ -64,25 +65,37 @@ const useWallet = () => {
   }, [details, contract, isConnected]);
 };
 
-
-//----
-
 const handleCreateCollection = async (contract: main.Main, name: string, cardCount: number, pokemonIds: string[]) => {
   const tx = await contract.createCollection(name, cardCount, pokemonIds);
   console.log('Transaction:', tx);
-}
-
+};
 
 const handleCreateCard = async (contract: main.Main, to: string, collectionId: string, pokemonId: string, imageUrl: string) => {
   const tx = await contract.mintAndAssign(to, collectionId, pokemonId, imageUrl);
   console.log('Transaction:', tx);
-
-}
+};
 
 const handleGetCard = async (contract: main.Main, tokenId: string) => {
   const card = await contract.getCard(tokenId);
   console.log('Card:', card);
-}
+};
+
+const getDeployerAddress = async (contract: main.Main) => {
+  const deployerAddress = await contract.getDeployer();
+  return deployerAddress;
+};
+
+const userPages = [
+  { name: 'Cards', link: '/cards' },
+  { name: 'Store', link: '/store' },
+  { name: 'Marketplace', link: '/marketplace' },
+];
+
+const ownerPages = [
+  { name: 'Manager', link: '/manager' },
+  { name: 'Factory', link: '/factory' },
+  { name: 'Store', link: '/store' },
+];
 
 export const App = () => {
   const wallet = useWallet();
@@ -102,50 +115,54 @@ export const App = () => {
     }
   }, [wallet.isConnected]);
 
+  // useEffect(() => {
+  //   if (wallet.isConnected) {
+  //     console.log('Connected to wallet:', wallet.details);
+  //   }
+  // }, [wallet.isConnected]);
+
+  const [deployerAddress, setDeployerAddress] = useState<string>();
   useEffect(() => {
-    if (wallet.isConnected) {
-      console.log('Connected to wallet:', wallet.details);
+    getDeployerAddress(wallet.contract!).then((deployerAddress) => {
+      setDeployerAddress(deployerAddress);
     }
-  }, [wallet]);
-
-  if (!wallet.isConnected) {
-    return (
-      <div className={styles.container}>
-        <h1>Connect Wallet</h1>
-        <button onClick={wallet.connectWallet}>Connect Wallet</button>
-      </div>
     );
-  }
+   
+  }, [wallet.contract]);
 
-  else {
-    if (wallet.details?.account == wallet.contract?.account) {
-      return (
+  return (
+    <>
+      {!wallet.isConnected ? (
+        <BrowserRouter>
+          <NavBar pages={userPages} />
+          <div className={styles.container}>
+            <h1>Connect Wallet</h1>
+            <button onClick={wallet.connectWallet}>Connect Wallet</button>
+          </div>
+        </BrowserRouter>
+      ) : wallet.isConnected && wallet.details?.account == deployerAddress ? (
         <div className={styles.container}>
-          <NavBar />
           <BrowserRouter>
+            <NavBar pages={ownerPages} />
             <Routes>
-              <Route path='/' element={<Manager />} />
-              <Route path='/factory' element={<Factory />} />
-              <Route path='/store' element={<OwnerStore />} />
+              <Route path="/manager" element={<Manager />} />
+              <Route path="/factory" element={<Factory />} />
+              <Route path="/store" element={<OwnerStore />} />
+            </Routes> 
+          </BrowserRouter>
+        </div>
+      ) : (
+        <div className={styles.container}>
+          <BrowserRouter>
+          <NavBar pages={userPages} />
+            <Routes>
+              <Route path="/cards" element={<Collection />} />
+              <Route path="/marketplace" element={<Marketplace />} />
+              <Route path="/store" element={<UserStore />} />
             </Routes>
           </BrowserRouter>
         </div>
-      );
-
-    }
-    else {
-      return (
-        <div className={styles.container}>
-          <NavBar />
-          <BrowserRouter>
-            <Routes>
-              <Route path='/' element={<Collection />} />
-              <Route path='/marketplace' element={<Marketplace />} />
-              <Route path='/store' element={<UserStore />} />
-            </Routes>
-          </BrowserRouter>
-        </div>
-      );
-    }
-  }
+      )}
+    </>
+  );
 };
