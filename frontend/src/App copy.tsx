@@ -49,9 +49,8 @@ export const App = () => {
   const handleCreateCollection = async () => {
     if (wallet) {
       try {
-        // Passe un objet contenant 'from' au lieu de passer l'adresse directement
         await wallet.contract.createCollection('New Collection', 10, {
-          from: wallet.details.account // Utilise l'adresse du compte dans 'from'
+          from: wallet.details.account 
         });
         console.log('Collection created successfully!');
       } catch (error) {
