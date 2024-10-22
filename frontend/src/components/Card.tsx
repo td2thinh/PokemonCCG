@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { createUseStyles } from "react-jss";
 import { useParams } from "react-router-dom";
-import Icon from "../Components/Icon";
+import Icon from "./Icon";
 import useCard from "../Hooks/useCard";
 
 const useStyles = createUseStyles({
