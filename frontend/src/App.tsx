@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import styles from './styles.module.css';
 import * as ethereum from '@/lib/ethereum';
 import * as main from '@/lib/main';
-import NavBar from './components/NavBar';
+import NavBar from './Components/NavBar';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Manager from './pages/Owner/Manager';
 import Factory from './pages/Owner/Factory';
@@ -10,6 +10,7 @@ import OwnerStore from './pages/Owner/OwnerStore';
 import Collection from './pages/User/Collection';
 import Marketplace from './pages/User/Marketplace';
 import UserStore from './pages/User/UserStore';
+import ManagerCard from './pages/Owner/ManagerCard';
 import { Contract } from 'ethers';
 type Canceler = () => void;
 
@@ -148,6 +149,8 @@ export const App = () => {
               <Route path="/manager" element={<Manager />} />
               <Route path="/factory" element={<Factory />} />
               <Route path="/store" element={<OwnerStore />} />
+              <Route path="/manager/:id" element={<ManagerCard />} />
+
             </Routes> 
           </BrowserRouter>
         </div>

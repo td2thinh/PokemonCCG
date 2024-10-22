@@ -1,8 +1,9 @@
 import React from 'react'
+import Cards from '../Cards'
 
 function Manager() {
     return (
-        <div>Manager</div>
+        <Cards />
     )
 }
 

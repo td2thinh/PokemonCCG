@@ -1,9 +1,10 @@
-import React from 'react'
+import React from 'react';
+import Card from "../Card";
 
 function Factory() {
     return (
-        <div>Factory</div>
-    )
+            <Card isOwner={false} />
+    );
 }
 
-export default Factory
+export default Factory;
