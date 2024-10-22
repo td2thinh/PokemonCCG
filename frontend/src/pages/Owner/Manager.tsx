@@ -3,7 +3,7 @@ import Cards from '../../Components/Cards'
 
 function Manager() {
     return (
-        <Cards />
+        <Cards isOwner={true} />
     )
 }
 

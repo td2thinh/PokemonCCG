@@ -1,5 +1,5 @@
 import React, { Fragment } from "react";
-import useCardsManagerStyles from "./CardsManagerStyles"; // Importer les styles
+import useModalStyles from "./CardsManagerStyles"; // Importer les styles
 
 interface ModalManagerProps {
   selectedCards: { id: string; name: string }[];
@@ -9,6 +9,7 @@ interface ModalManagerProps {
   handleInputChange: (cardId: string, value: number) => void;
   handleAssign: () => void;
   handleCloseModal: () => void;
+  isOwner: boolean; 
 }
 
 const ModalManager: React.FC<ModalManagerProps> = ({
@@ -19,23 +20,28 @@ const ModalManager: React.FC<ModalManagerProps> = ({
   handleInputChange,
   handleAssign,
   handleCloseModal,
+  isOwner, 
 }) => {
-  const classes = useCardsManagerStyles(); // Utiliser les styles du modal
+  const classes = useModalStyles(); // Utiliser les styles du modal
 
   return (
     <Fragment>
       <div className={classes.overlay} onClick={handleCloseModal}></div>
       <div className={classes.modal}>
         <h2>Manager les cartes sélectionnées</h2>
-        <div className={classes.formGroup}>
-          <label>Assigné à</label>
-          <input
-            type="text"
-            value={assignTo}
-            onChange={(e) => setAssignTo(e.target.value)}
-            className={classes.assignInput}
-          />
-        </div>
+
+        {isOwner && (
+          <div className={classes.formGroup}>
+            <label>Assigné à</label>
+            <input
+              type="text"
+              value={assignTo}
+              onChange={(e) => setAssignTo(e.target.value)}
+              className={classes.assignInput}
+            />
+          </div>
+        )}
+
         <div className={classes.scrollableList}>
           {selectedCards.map((card) => (
             <div key={card.id} className={classes.cardRow}>
@@ -52,13 +58,21 @@ const ModalManager: React.FC<ModalManagerProps> = ({
             </div>
           ))}
         </div>
+
         <div className={classes.buttons}>
           <button className={classes.closeButton} onClick={handleCloseModal}>
             Fermer
           </button>
-          <button className={classes.assignButton} onClick={handleAssign}>
-            Assigner
-          </button>
+
+          {isOwner ? (
+            <button className={classes.assignButton} onClick={handleAssign}>
+              Assigner
+            </button>
+          ) : (
+            <button className={classes.assignButton} onClick={handleAssign}>
+              Vendre
+            </button>
+          )}
         </div>
       </div>
     </Fragment>

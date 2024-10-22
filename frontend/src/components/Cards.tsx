@@ -6,7 +6,11 @@ import useCards from "../Hooks/useCards";
 import useStyles from "./CardsStyles";
 import ModalManager from "./CardsManager"; // Import du composant
 
-const Cards = () => {
+interface CardsProps {
+  isOwner: boolean; // Nouveau paramètre pour indiquer si l'utilisateur est propriétaire
+}
+
+const Cards: React.FC<CardsProps> = ({ isOwner }) => {
   const { type } = useParams();
   const { pathname } = useLocation();
   const classes = useStyles();
@@ -53,7 +57,7 @@ const Cards = () => {
 
   // Vérifie si les cartes sont bien chargées
   if (!cards.length) {
-    console.log("No cards available");  // Ajout pour vérifier l'état des cartes
+    console.log("No cards available");  
     return <Skeleton count={10} />;
   }
 
@@ -100,6 +104,7 @@ const Cards = () => {
           handleInputChange={handleInputChange}
           handleAssign={handleAssign}
           handleCloseModal={handleCloseModal}
+          isOwner={isOwner} 
         />
       )}
     </Fragment>
