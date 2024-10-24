@@ -1,6 +1,12 @@
-const useCards = () => {
+interface CollectionProps {
+	isOwner: boolean;
+	id: String;
+}
+
+const useCollection = ({ isOwner, id }: CollectionProps) => {
+	// tu renvoie toute les collection existante 
 	return {
-		cards: [
+		collections: [
 			{
 				id: 1,
 				image: "https://images.pokemontcg.io/swsh4/1.png",
@@ -105,4 +111,4 @@ const useCards = () => {
 	};
 };
 
-export default useCards;
+export default useCollection;

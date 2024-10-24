@@ -2,7 +2,7 @@ import React, { Fragment, useState } from "react";
 import { Link, useParams, useLocation } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
 import { Img } from "react-image";
-import useCards from "../Hooks/useCards";
+import useCards from "../Hooks/useCards.tsx";
 import useStyles from "./CardsStyles";
 import ModalManager from "./CardsManager"; // Import du composant
 

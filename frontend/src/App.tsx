@@ -4,14 +4,16 @@ import * as ethereum from '@/lib/ethereum';
 import * as main from '@/lib/main';
 import NavBar from './Components/NavBar';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Manager from './pages/Owner/Manager';
-import Factory from './pages/Owner/Factory';
+import ManagerCards from './pages/ManagerCards';
+import FactoryPage from './pages/Factory';
 import OwnerStore from './pages/Owner/OwnerStore';
-import Collection from './pages/User/Collection';
+import Collection from './pages/User/UsersCollectionsPage';
 import Marketplace from './pages/User/Marketplace';
 import UserStore from './pages/User/UserStore';
-import ManagerCard from './pages/Owner/ManagerCard';
+import ManagerCard from './pages/ManagerCard';
 import { Contract } from 'ethers';
+import UsersCollectionsPage from './pages/User/UsersCollectionsPage';
+import UserFactoryPage from './pages/Factory';
 type Canceler = () => void;
 
 const useAffect = (
@@ -93,7 +95,7 @@ const userPages = [
 ];
 
 const ownerPages = [
-  { name: 'Manager', link: '/manager' },
+  { name: 'Booster', link: '/booster' },
   { name: 'Factory', link: '/factory' },
   { name: 'Store', link: '/store' },
 ];
@@ -146,12 +148,15 @@ export const App = () => {
           <BrowserRouter>
             <NavBar pages={ownerPages} />
             <Routes>
-              <Route path="/manager" element={<Manager />} />
-              <Route path="/factory" element={<Factory />} />
+              {/* <Route path="/manager" element={<Manager />} /> */}
+              <Route path="/factory" element={<FactoryPage  isOwner={true} />} />
+              <Route path="/factory/:ClId" element={<ManagerCards isOwner={true} />} />
+              <Route path="/factory/:ClId/:CrId" element={<ManagerCard isOwner={true} />} />
+              {/* <Route path="/booster" element={<Booster />} /> */}
               <Route path="/store" element={<OwnerStore />} />
-              <Route path="/manager/:id" element={<ManagerCard />} />
-
-            </Routes> 
+              {/* <Route path="/manager/:id" element={<ManagerCard />} /> */}
+              <Route path="/collections" element={<UsersCollectionsPage />} />
+            </Routes>
           </BrowserRouter>
         </div>
       ) : (
@@ -159,9 +164,12 @@ export const App = () => {
           <BrowserRouter>
           <NavBar pages={userPages} />
             <Routes>
-              <Route path="/cards" element={<Collection />} />
+              <Route path="/factory" element={<FactoryPage />} />
+              <Route path="/factory/:ClId" element={<ManagerCards />} />
+              <Route path="/factory/:ClId/:CrId" element={<ManagerCard />} />
               <Route path="/marketplace" element={<Marketplace />} />
               <Route path="/store" element={<UserStore />} />
+              {/* <Route path="/collections" element={<UsersCollectionsPage />} /> */}
             </Routes>
           </BrowserRouter>
         </div>

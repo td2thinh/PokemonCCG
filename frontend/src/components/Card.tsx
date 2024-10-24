@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { createUseStyles } from "react-jss";
 import { useParams } from "react-router-dom";
 import Icon from "./Icon";
-import useCard from "../Hooks/useCard";
+import useCard from "../Hooks/useCard.tsx";
+import useCardOwners from "@/Hooks/useCardOwners";
 
 const useStyles = createUseStyles({
   container: {
@@ -10,6 +11,12 @@ const useStyles = createUseStyles({
     margin: "0 auto",
     padding: "10px",
     textAlign: "center",
+  },
+  cardOwnersSection: {
+    display: "flex",
+    justifyContent: "space-between", 
+    alignItems: "center",
+    marginBottom: "20px",
   },
   card: {
     display: "inline-block",
@@ -47,12 +54,14 @@ const useStyles = createUseStyles({
     },
   },
   button: {
-    padding: "10px 20px",
+    padding: "5px 10px",
     backgroundColor: "#007bff",
     color: "white",
     border: "none",
     borderRadius: "8px",
     cursor: "pointer",
+    fontSize: "14px",
+    marginLeft: "10px",
     "&:hover": {
       backgroundColor: "#0056b3",
     },
@@ -60,19 +69,59 @@ const useStyles = createUseStyles({
   quantityField: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "center", // Centrer horizontalement
+    justifyContent: "center", 
     marginBottom: "10px",
   },
   label: {
-    marginRight: "25px", // Espacement entre le label et l'input
+    marginRight: "25px", 
     fontWeight: "bold",
-	width: "100px",
+    width: "100px",
   },
   assignField: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "center", // Centrer horizontalement
+    justifyContent: "center", 
     marginBottom: "10px",
+  },
+  modal: {
+    position: "fixed",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    backgroundColor: "white",
+    padding: "20px",
+    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.3)",
+    borderRadius: "10px",
+    zIndex: 1000,
+    width: "60%", 
+    maxWidth: "500px",
+    textAlign: "center",
+  },
+  overlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    zIndex: 999,
+  },
+  ownerList: {
+    maxHeight: "200px", // Limite la hauteur du contenu
+    overflowY: "auto", // Ajoute la capacité de faire défiler le contenu
+    marginTop: "20px",
+  },
+  closeButton: {
+    marginTop: "20px",
+    backgroundColor: "#dc3545",
+    color: "white",
+    border: "none",
+    borderRadius: "8px",
+    padding: "10px 20px",
+    cursor: "pointer",
+    "&:hover": {
+      backgroundColor: "#c82333",
+    },
   },
 });
 
@@ -80,8 +129,10 @@ const Card = ({ isOwner }: { isOwner: boolean }) => {
   const { id } = useParams();
   const classes = useStyles();
   const { card } = useCard(id);
+  const { owners: cardOwners } = useCardOwners(id);
   const [assignTo, setAssignTo] = useState("");
-  const [nbCard, setNbCard] = useState(1); // Nombre de cartes souhaité
+  const [nbCard, setNbCard] = useState(1);
+  const [showOwners, setShowOwners] = useState(false); // État pour afficher le pop-up
 
   if (!card) return <div>Loading...</div>;
   if (card === "Error") return <div>Error page</div>;
@@ -96,11 +147,24 @@ const Card = ({ isOwner }: { isOwner: boolean }) => {
     console.log(`Card sold (Nb Card: ${nbCard})`);
   };
 
+  const toggleOwnersPopup = () => {
+    setShowOwners(!showOwners);
+  };
+
   return (
     <div className={classes.container}>
-      <h1>{name}</h1>
-      <div className={classes.card}>
-        <Icon name={name} text={text} img={image} size={size} />
+      <h1>
+        {name}
+        {isOwner && (
+          <button className={classes.button} onClick={toggleOwnersPopup}>
+            Show Owners
+          </button>
+        )}
+      </h1>
+      <div className={classes.cardOwnersSection}>
+        <div className={classes.card}>
+          <Icon name={name} text={text} img={image} size={size} />
+        </div>
       </div>
 
       <div className={classes.form}>
@@ -134,6 +198,29 @@ const Card = ({ isOwner }: { isOwner: boolean }) => {
           <button className={classes.button} onClick={handleSell}>
             Sell
           </button>
+        )}
+        
+        {/* Pop-up des propriétaires */}
+        {showOwners && (
+          <div className={classes.overlay} onClick={toggleOwnersPopup}>
+            <div className={classes.modal}>
+              <h2>Owners</h2>
+              <div className={classes.ownerList}>
+                {cardOwners.length ? (
+                  cardOwners.map((owner) => (
+                    <p key={owner.id}>
+                      {owner.name} - {owner.cardCount} cards
+                    </p>
+                  ))
+                ) : (
+                  <p>No owners found</p>
+                )}
+              </div>
+              <button className={classes.closeButton} onClick={toggleOwnersPopup}>
+                Close
+              </button>
+            </div>
+          </div>
         )}
       </div>
     </div>
