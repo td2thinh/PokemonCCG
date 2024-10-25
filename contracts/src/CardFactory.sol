@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Compatible with OpenZeppelin Contracts ^5.0.0
 pragma solidity ^0.8.20;
-
-import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -11,31 +9,43 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract CardFactory is ERC721, ERC721Enumerable, Ownable {
     uint256 private _nextTokenId;
 
+    constructor(address initialOwner)
+        ERC721("Pokemon Card", "POCKET")
+        Ownable(initialOwner) 
+    {
+        _nextTokenId = 0;
+    }
+
     struct Card {
         uint tokenId;      // token ID
         uint collectionId;  // collection ID
         string pokemonId;   // pokemon ID
-        string imageUrl;    // image URL
     }
 
     // Mapping from token ID to card
     mapping(uint256 => Card) private _cards;
     mapping(string => uint256) private _pokemonIdToTokenId;
     
-    constructor(address initialOwner)
-        ERC721("Pokemon Card", "POCKET")
-        Ownable(initialOwner)
-    {}
+    
 
-    function getDeployer() public view returns (address) {
+    function getDeployer() 
+        public 
+        view 
+        returns (address) {
         return owner();
     }
     
-    function getCard(uint256 tokenId) public view returns (Card memory) {
+    function getCard(uint256 tokenId) 
+        public 
+        view 
+        returns (Card memory) {
         return _cards[tokenId];
     }
 
-    function getMultipleCards(uint256[] memory tokenIds) public view returns (Card[] memory) {
+    function getMultipleCards(uint256[] memory tokenIds) 
+        public 
+        view 
+        returns (Card[] memory) {
         Card[] memory cards = new Card[](tokenIds.length);
         for (uint256 i = 0; i < tokenIds.length; i++) {
             cards[i] = _cards[tokenIds[i]];
@@ -43,39 +53,45 @@ contract CardFactory is ERC721, ERC721Enumerable, Ownable {
         return cards;
     }
 
-    function mintAndAssign(address to, uint256 collectionId, string memory pokemonId, string memory imageUrl)
+    function mintAndAssign(address to, uint256 collectionId, string memory pokemonId)
         public
         onlyOwner
         returns (uint256)
     {
         uint256 tokenId = _nextTokenId++;
         _mint(to, tokenId);
-        _cards[tokenId] = Card(tokenId, collectionId, pokemonId, imageUrl);
+        setApprovalForAll(address(this), true);
+        _cards[tokenId] = Card(tokenId, collectionId, pokemonId);
         _pokemonIdToTokenId[pokemonId] = tokenId;
         return tokenId;
     }
 
-    function mintAndAssignBatch(address to, uint256 collectionId, string[] memory pokemonIds, string[] memory imageUrls)
+    function mintAndAssignBatch(address to, uint256 collectionId, string[] memory pokemonIds)
         public
-        onlyOwner
         returns (uint256[] memory)
     {
         uint256[] memory tokenIds = new uint256[](pokemonIds.length);
         for (uint256 i = 0; i < pokemonIds.length; i++) {
             tokenIds[i] = _nextTokenId++;
             _mint(to, tokenIds[i]);
-            _cards[tokenIds[i]] = Card(tokenIds[i], collectionId, pokemonIds[i], imageUrls[i]);
+            setApprovalForAll(address(this), true);
+            _cards[tokenIds[i]] = Card(tokenIds[i], collectionId, pokemonIds[i]);
             _pokemonIdToTokenId[pokemonIds[i]] = tokenIds[i];
         }
         return tokenIds;
     }
 
-    function burn(uint256 tokenId) public onlyOwner {
+    function burn(uint256 tokenId) 
+        public 
+        onlyOwner {
         _burn(tokenId);
         delete _cards[tokenId];
     }
 
-    function getOwnedCards(address owner) public view returns (uint256[] memory) {
+    function getOwnedCards(address owner) 
+        public 
+        view 
+        returns (uint256[] memory) {
         uint256 tokenCount = balanceOf(owner);
         uint256[] memory ownedTokens = new uint256[](tokenCount);
         for (uint256 i = 0; i < tokenCount; i++) {
@@ -84,7 +100,10 @@ contract CardFactory is ERC721, ERC721Enumerable, Ownable {
         return ownedTokens;
     }
 
-    function getOwners(string[] memory pokemonIds) public view returns (address[] memory) {
+    function getOwners(string[] memory pokemonIds) 
+        public 
+        view 
+        returns (address[] memory) {
         address[] memory owners = new address[](pokemonIds.length);
         for (uint256 i = 0; i < pokemonIds.length; i++) {
             owners[i] = ownerOf(_pokemonIdToTokenId[pokemonIds[i]]);

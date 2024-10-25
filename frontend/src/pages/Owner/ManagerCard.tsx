@@ -1,9 +1,10 @@
 import React from 'react'
-import Card from '../../Components/Card'
 
 function ManagerCard() {
     return (
-        <Card isOwner={true} />
+        <div>
+            <h1>ManagerCard</h1>
+        </div>
     )
 }
 

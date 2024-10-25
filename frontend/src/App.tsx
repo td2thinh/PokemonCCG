@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import styles from './styles.module.css';
 import * as ethereum from '@/lib/ethereum';
 import * as main from '@/lib/main';
-import NavBar from './Components/NavBar';
+import NavBar from './components/NavBar';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Manager from './pages/Owner/Manager';
 import Factory from './pages/Owner/Factory';
@@ -115,6 +115,26 @@ export const App = () => {
       };
     }
   }, [wallet.isConnected]);
+  useEffect(() => {
+
+    if (!wallet || !wallet.contract) return; // Assurez-vous que le portefeuille et le contrat sont disponibles
+
+    const { contract } = wallet;
+
+    contract.on("CardsUnpacked", (pokemonIds: string[]) => {
+      console.log("CardsUnpacked event:", pokemonIds);
+    });
+
+
+
+
+
+    // Fonction de nettoyage pour éviter les fuites de mémoire
+    // return () => {
+    //   contract.off("CollectionCreated"); // Déconnexion de l'événement
+    // };
+  }, [wallet]); // Dépendance sur le portefeuille
+
 
   // useEffect(() => {
   //   if (wallet.isConnected) {
@@ -128,7 +148,7 @@ export const App = () => {
       setDeployerAddress(deployerAddress);
     }
     );
-   
+
   }, [wallet.contract]);
 
   return (
@@ -147,20 +167,20 @@ export const App = () => {
             <NavBar pages={ownerPages} />
             <Routes>
               <Route path="/manager" element={<Manager />} />
-              <Route path="/factory" element={<Factory />} />
+              <Route path="/factory" element={<Factory contract={wallet.contract!} />} />
               <Route path="/store" element={<OwnerStore />} />
               <Route path="/manager/:id" element={<ManagerCard />} />
 
-            </Routes> 
+            </Routes>
           </BrowserRouter>
         </div>
       ) : (
         <div className={styles.container}>
           <BrowserRouter>
-          <NavBar pages={userPages} />
+            <NavBar pages={userPages} />
             <Routes>
-              <Route path="/cards" element={<Collection />} />
-              <Route path="/marketplace" element={<Marketplace />} />
+              <Route path="/cards" element={<Collection wallet={wallet.details!.account} contract={wallet.contract!} />} />
+              <Route path="/marketplace" element={<Marketplace wallet={wallet.details!.account} contract={wallet.contract!} />} />
               <Route path="/store" element={<UserStore />} />
             </Routes>
           </BrowserRouter>

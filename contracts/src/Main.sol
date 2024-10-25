@@ -1,50 +1,75 @@
 pragma solidity ^0.8.20;
 
+import "./Marketplace.sol";
 import "./CardFactory.sol";
-import "hardhat/console.sol";
+import "./BoosterFactory.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract Main is CardFactory {
-    uint256 private _nextCollectionId;
+contract Main is Marketplace {
     
-    constructor()
-        CardFactory(msg.sender)
-    {
-        _nextCollectionId = 0;
-    }
+    BoosterFactory private _boosterFactory;
+    BoosterFactory.Booster private _booster;
     
-    struct Collection {
-        uint256 collectionId;   // collection ID
-        string name;            // collection name
-        string[] pokemonIds;    // list of pokemon IDs
-        uint256 cardCount;  // number of cards in the collection
+    constructor(address initialOwner) Marketplace(initialOwner) {
+        _boosterFactory = new BoosterFactory(address(this));
     }
 
-    // Mapping from collection ID to collection
-    mapping(uint256 => Collection) private collections;
-
-    // Events
-    event CollectionCreated(string name, uint256 cardCount);
-
-    function createCollection(string memory name, uint256 cardCount, string[] memory pokemonIds) public onlyOwner returns (uint256) {
-        uint256 collectionId = _nextCollectionId++;
-        collections[collectionId] = Collection(collectionId, name, pokemonIds, cardCount);
-        emit CollectionCreated(name, cardCount);
-        return collectionId;
-    }
-
-    function getAllCollections() public view returns (Collection[] memory) {
-        Collection[] memory result = new Collection[](_nextCollectionId);
-        for (uint256 i = 0; i < _nextCollectionId; i++) {
-            result[i] = collections[i];
+    // Booster
+    function createBooster(string memory name, string memory imageUrl, uint256 collectionId, uint pokemonCount, uint price) 
+        public 
+        onlyOwner 
+        returns (uint256) {
+        string[] memory pokemonIds = new string[](pokemonCount);
+        for (uint i = 0; i < pokemonCount; i++) {
+            pokemonIds[i] = collections[collectionId].pokemonIds[i];
         }
-        return result;
+        return _boosterFactory.createBooster(name, imageUrl, collectionId, pokemonIds, pokemonCount, price);
     }
 
-    function getCollection(uint256 collectionId) public view returns (Collection memory) {
-        return collections[collectionId];
+    function redeemBooster(uint256 boosterId) 
+        public 
+        {
+        require(_boosterFactory.ownerOf(boosterId) == msg.sender, "Main: not the owner of the booster");
+        _booster = _boosterFactory.getBooster(boosterId);
+        mintAndAssignBatch(msg.sender, _booster.collectionId, _booster.pokemonIds);
+        emit CardsUnpacked(_booster.pokemonIds);
+        _boosterFactory.burn(boosterId);
     }
-    
+
+    function getBooster(uint256 boosterId) 
+        public 
+        view 
+        returns (BoosterFactory.Booster memory) {
+        return _boosterFactory.getBooster(boosterId);
+    }
+
+    function getOwnedBoosters(address owner) 
+        public 
+        view 
+        returns (uint256[] memory) {
+        return _boosterFactory.getOwnedBoosters(owner);
+    }
+
+    function getAllBoosters() 
+        public 
+        view 
+        returns (BoosterFactory.Booster[] memory) {
+        return _boosterFactory.getAllBoosters();
+    }
+
+    function buyBooster(uint256 boosterId, address to)
+        public 
+        payable {
+        _boosterFactory.buyBooster{value: msg.value}(boosterId, to);
+    }
+
+    function getOwnerForBooster(uint256 boosterId) 
+        public 
+        view 
+        returns (address) {
+        return _boosterFactory.ownerOf(boosterId);
+    }
+
     receive() external payable {} // to support receiving ETH by default
     fallback() external payable {}
 }
