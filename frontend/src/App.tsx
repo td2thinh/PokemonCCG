@@ -7,13 +7,13 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import ManagerCards from './pages/ManagerCards';
 import FactoryPage from './pages/Factory';
 import OwnerStore from './pages/Owner/OwnerStore';
-import Collection from './pages/User/UsersCollectionsPage';
 import Marketplace from './pages/User/Marketplace';
 import UserStore from './pages/User/UserStore';
 import ManagerCard from './pages/ManagerCard';
 import { Contract } from 'ethers';
 import UsersCollectionsPage from './pages/User/UsersCollectionsPage';
-import UserFactoryPage from './pages/Factory';
+import BoostersPage from './pages/BoostersPage';
+import BoosterDetails from './pages/User/BoosterDetailsPage';
 type Canceler = () => void;
 
 const useAffect = (
@@ -152,7 +152,8 @@ export const App = () => {
               <Route path="/factory" element={<FactoryPage  isOwner={true} />} />
               <Route path="/factory/:ClId" element={<ManagerCards isOwner={true} />} />
               <Route path="/factory/:ClId/:CrId" element={<ManagerCard isOwner={true} />} />
-              {/* <Route path="/booster" element={<Booster />} /> */}
+              <Route path="/booster" element={<BoostersPage />} />
+              <Route path="/booster/:id" element={<BoosterDetails />} />
               <Route path="/store" element={<OwnerStore />} />
               {/* <Route path="/manager/:id" element={<ManagerCard />} /> */}
               <Route path="/collections" element={<UsersCollectionsPage />} />

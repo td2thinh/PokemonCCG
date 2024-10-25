@@ -1,7 +1,6 @@
 import React from 'react';
-import Card from "../Components/Card";
 import Titre from '@/Components/Titre';
-import Collections from '@/Components/Collections';
+import Boosters from '@/Components/Boosters';
 
 interface FactoryPageProps {
     isOwner?: boolean;
@@ -12,7 +11,7 @@ function BoostersPage() {
     return (
         <div>
             <Titre text="Booster " color="rebeccapurple" />
-            {/* < Boosters */}
+            < Boosters isOwner={true} id={""} />
         </div>
     )
 }
