@@ -11,10 +11,10 @@ interface CardsProps {
 }
 
 const Cards: React.FC<CardsProps> = ({ isOwner }) => {
-  const { type } = useParams();
+  const { id } = useParams<{ id: string }>();
   const { pathname } = useLocation();
   const classes = useStyles();
-  const { cards } = useCards(type);
+  const { cards } = useCards(id);
   const [selectedCards, setSelectedCards] = useState<string[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [assignTo, setAssignTo] = useState("");

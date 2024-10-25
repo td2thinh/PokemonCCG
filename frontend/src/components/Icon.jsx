@@ -11,6 +11,7 @@ const useStyles = createUseStyles({
 		display: "inline-block",
 		color: ({ bg }) => bg,
 		textAlign: "center",
+		minWidth: "400px",
 	},
 	icon: {
 		borderRadius: "100%",

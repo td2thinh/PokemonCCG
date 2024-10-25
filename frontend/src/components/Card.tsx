@@ -7,7 +7,7 @@ import useCardOwners from "@/Hooks/useCardOwners";
 
 const useStyles = createUseStyles({
   container: {
-    maxWidth: "900px",
+    maxWidth: "400px",
     margin: "0 auto",
     padding: "10px",
     textAlign: "center",

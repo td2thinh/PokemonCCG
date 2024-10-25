@@ -1,4 +1,5 @@
-const useCards = (collectionIds) => {
+
+const useCards = (id: string | undefined) => {
 	// si c'est un owner tu peux renvoyer toute les carte
 	// sinon tu renvoies les cartes de la collectionIds
 	return {
