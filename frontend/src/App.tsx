@@ -154,7 +154,7 @@ export const App = () => {
               <Route path="/booster" element={<BoostersPage isOwner={true} />} />
               <Route path="/store" element={<OwnerStore />} />
               {/* <Route path="/manager/:id" element={<ManagerCard />} /> */}
-              <Route path="/collections" element={<UsersCollectionsPage />} />
+              <Route path="/market" element={<Marketplace />} />
             </Routes>
           </BrowserRouter>
         </div>

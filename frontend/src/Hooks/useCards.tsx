@@ -1,111 +1,150 @@
-
 const useCards = (id: string | undefined) => {
-	// si c'est un owner tu peux renvoyer toute les carte
-	// sinon tu renvoies les cartes de la collectionIds
+	const isOwner = true; // Simulons que l'utilisateur est propriétaire pour cet exemple
+	
 	return {
-		cards: [
-			{
-				id: 1,
-				image: "https://images.pokemontcg.io/swsh4/1.png",
-				name: "Charizard",
-			},
-			{
-				id: 2,
-				image: "https://images.pokemontcg.io/swsh4/2.png",
-				name: "Pikachu",
-			},
-			{
-				id: 3,
-				image: "https://images.pokemontcg.io/swsh4/3.png",
-				name: "Bulbasaur",
-			},
-			{
-				id: 4,
-				image: "https://images.pokemontcg.io/swsh4/4.png",
-				name: "Squirtle",
-			},
-			{
-				id: 5,
-				image: "https://images.pokemontcg.io/swsh4/5.png",
-				name: "Jigglypuff",
-			},
-			{
-				id: 6,
-				image: "https://images.pokemontcg.io/swsh4/6.png",
-				name: "Meowth",
-			},
-			{
-				id: 7,
-				image: "https://images.pokemontcg.io/swsh4/7.png",
-				name: "Psyduck",
-			},
-			{
-				id: 8,
-				image: "https://images.pokemontcg.io/swsh4/8.png",
-				name: "Machop",
-			},
-			{
-				id: 9,
-				image: "https://images.pokemontcg.io/swsh4/9.png",
-				name: "Magikarp",
-			},
-			{
-				id: 10,
-				image: "https://images.pokemontcg.io/swsh4/10.png",
-				name: "Gengar",
-			},
-			{
-				id: 11,
-				image: "https://images.pokemontcg.io/swsh4/11.png",
-				name: "Onix",
-			},
-			{
-				id: 12,
-				image: "https://images.pokemontcg.io/swsh4/12.png",
-				name: "Snorlax",
-			},
-			{
-				id: 13,
-				image: "https://images.pokemontcg.io/swsh4/13.png",
-				name: "Eevee",
-			},
-			{
-				id: 14,
-				image: "https://images.pokemontcg.io/swsh4/14.png",
-				name: "Vulpix",
-			},
-			{
-				id: 15,
-				image: "https://images.pokemontcg.io/swsh4/15.png",
-				name: "Geodude",
-			},
-			{
-				id: 16,
-				image: "https://images.pokemontcg.io/swsh4/16.png",
-				name: "Rattata",
-			},
-			{
-				id: 17,
-				image: "https://images.pokemontcg.io/swsh4/17.png",
-				name: "Zubat",
-			},
-			{
-				id: 18,
-				image: "https://images.pokemontcg.io/swsh4/18.png",
-				name: "Oddish",
-			},
-			{
-				id: 19,
-				image: "https://images.pokemontcg.io/swsh4/19.png",
-				name: "Poliwag",
-			},
-			{
-				id: 20,
-				image: "https://images.pokemontcg.io/swsh4/20.png",
-				name: "Abra",
-			},
-		],
+	  cards: [
+		{
+		  id: 1,
+		  image: "https://images.pokemontcg.io/swsh4/1.png",
+		  name: "Charizard",
+		  isMine: isOwner,
+		  price: 300,
+		},
+		{
+		  id: 2,
+		  image: "https://images.pokemontcg.io/swsh4/2.png",
+		  name: "Pikachu",
+		  isMine: !isOwner,
+		  price: 150,
+		},
+		{
+		  id: 3,
+		  image: "https://images.pokemontcg.io/swsh4/3.png",
+		  name: "Bulbasaur",
+		  isMine: isOwner,
+		  price: 120,
+		},
+		{
+		  id: 4,
+		  image: "https://images.pokemontcg.io/swsh4/4.png",
+		  name: "Squirtle",
+		  isMine: !isOwner,
+		  price: 100,
+		},
+		{
+		  id: 5,
+		  image: "https://images.pokemontcg.io/swsh4/5.png",
+		  name: "Jigglypuff",
+		  isMine: isOwner,
+		  price: 75,
+		},
+		{
+		  id: 6,
+		  image: "https://images.pokemontcg.io/swsh4/6.png",
+		  name: "Meowth",
+		  isMine: !isOwner,
+		  price: 60,
+		},
+		{
+		  id: 7,
+		  image: "https://images.pokemontcg.io/swsh4/7.png",
+		  name: "Psyduck",
+		  isMine: isOwner,
+		  price: 55,
+		},
+		{
+		  id: 8,
+		  image: "https://images.pokemontcg.io/swsh4/8.png",
+		  name: "Machop",
+		  isMine: !isOwner,
+		  price: 80,
+		},
+		{
+		  id: 9,
+		  image: "https://images.pokemontcg.io/swsh4/9.png",
+		  name: "Magikarp",
+		  isMine: isOwner,
+		  price: 95,
+		},
+		{
+		  id: 10,
+		  image: "https://images.pokemontcg.io/swsh4/10.png",
+		  name: "Gengar",
+		  isMine: !isOwner,
+		  price: 200,
+		},
+		{
+		  id: 11,
+		  image: "https://images.pokemontcg.io/swsh4/11.png",
+		  name: "Onix",
+		  isMine: isOwner,
+		  price: 90,
+		},
+		{
+		  id: 12,
+		  image: "https://images.pokemontcg.io/swsh4/12.png",
+		  name: "Snorlax",
+		  isMine: !isOwner,
+		  price: 250,
+		},
+		{
+		  id: 13,
+		  image: "https://images.pokemontcg.io/swsh4/13.png",
+		  name: "Eevee",
+		  isMine: isOwner,
+		  price: 110,
+		},
+		{
+		  id: 14,
+		  image: "https://images.pokemontcg.io/swsh4/14.png",
+		  name: "Vulpix",
+		  isMine: !isOwner,
+		  price: 45,
+		},
+		{
+		  id: 15,
+		  image: "https://images.pokemontcg.io/swsh4/15.png",
+		  name: "Geodude",
+		  isMine: isOwner,
+		  price: 30,
+		},
+		{
+		  id: 16,
+		  image: "https://images.pokemontcg.io/swsh4/16.png",
+		  name: "Rattata",
+		  isMine: !isOwner,
+		  price: 20,
+		},
+		{
+		  id: 17,
+		  image: "https://images.pokemontcg.io/swsh4/17.png",
+		  name: "Zubat",
+		  isMine: isOwner,
+		  price: 15,
+		},
+		{
+		  id: 18,
+		  image: "https://images.pokemontcg.io/swsh4/18.png",
+		  name: "Oddish",
+		  isMine: !isOwner,
+		  price: 10,
+		},
+		{
+		  id: 19,
+		  image: "https://images.pokemontcg.io/swsh4/19.png",
+		  name: "Poliwag",
+		  isMine: isOwner,
+		  price: 25,
+		},
+		{
+		  id: 20,
+		  image: "https://images.pokemontcg.io/swsh4/20.png",
+		  name: "Abra",
+		  isMine: !isOwner,
+		  price: 85,
+		},
+	  ],
 	};
-};
-
-export default useCards;
+  };
+  
+  export default useCards;
