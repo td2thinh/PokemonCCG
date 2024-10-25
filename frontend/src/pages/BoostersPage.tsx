@@ -2,16 +2,20 @@ import React from 'react';
 import Titre from '@/Components/Titre';
 import Boosters from '@/Components/Boosters';
 
-interface FactoryPageProps {
+
+
+  interface BoostersPageProps {
     isOwner?: boolean;
   }
   
-function BoostersPage() {
+  
+  
+  const BoostersPage: React.FC<BoostersPageProps> = ({ isOwner = false }) => {
   
     return (
         <div>
             <Titre text="Booster " color="rebeccapurple" />
-            < Boosters isOwner={true} id={""} />
+            < Boosters isOwner={isOwner} />
         </div>
     )
 }

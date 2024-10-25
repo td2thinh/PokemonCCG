@@ -8,14 +8,13 @@ import CreateBoosterModal from "./CreateBoosterModal";
 
 interface CollectionsProps {
   isOwner: boolean; 
-  id: String;
 }
 
-const Boosters: React.FC<CollectionsProps> = ({ isOwner, id }) => {
-  const { type } = useParams();
+const Boosters: React.FC<CollectionsProps> = ({ isOwner }) => {
+  const { id } = useParams<{ id: string }>();
   const { pathname } = useLocation();
   const classes = useStyles();
-  const { collections } = useCollection({ isOwner, id });
+  const { collections } = useCollection({ isOwner, id: id ?? "" });
   const [showModal, setShowModal] = useState(false);
 
   const handleOpenModal = () => {
@@ -28,8 +27,8 @@ const Boosters: React.FC<CollectionsProps> = ({ isOwner, id }) => {
 
   const handleCreateBooster = (boosterData: { imageUrl: string; cardCount: number; collectionId: string; price: number }) => {
     console.log("Booster created:", boosterData);
-    // Vous pouvez ajouter ici la logique pour envoyer les données à l'API ou les sauvegarder dans votre système
-    handleCloseModal(); // Fermer le modal après création
+    // Logic to send the booster data to the API or save it in your system
+    handleCloseModal(); // Close the modal after creation
   };
 
   if (!collections.length) {
@@ -41,26 +40,37 @@ const Boosters: React.FC<CollectionsProps> = ({ isOwner, id }) => {
       <ul className={classes.ul}>
         {collections.map(({ id, image, name }) => (
           <li key={id} className={classes.li}>
-            <Link to={`${pathname}/${id}`}>
+            {isOwner ? (
+              // Non-clickable version if isOwner is true
               <Img
                 src={image}
                 loader={<Skeleton />}
                 alt={name}
                 className={classes.img}
               />
-            </Link>
+            ) : (
+              // Clickable version if isOwner is false
+              <Link to={`${pathname}/${id}`}>
+                <Img
+                  src={image}
+                  loader={<Skeleton />}
+                  alt={name}
+                  className={classes.img}
+                />
+              </Link>
+            )}
           </li>
         ))}
       </ul>
 
-      {/* Afficher le bouton Create Booster uniquement si isOwner est true */}
+      {/* Show Create Booster button only if isOwner is true */}
       {isOwner && (
         <button className={classes.managerButton} onClick={handleOpenModal}>
           Create Booster
         </button>
       )}
 
-      {/* Modal pour créer un booster */}
+      {/* Modal to create a booster */}
       {showModal && (
         <CreateBoosterModal
           handleCloseModal={handleCloseModal}
@@ -71,4 +81,4 @@ const Boosters: React.FC<CollectionsProps> = ({ isOwner, id }) => {
   );
 };
 
-export default Boosters ;   
+export default Boosters;

@@ -89,15 +89,14 @@ const getDeployerAddress = async (contract: main.Main) => {
 };
 
 const userPages = [
-  { name: 'Cards', link: '/cards' },
-  { name: 'Store', link: '/store' },
+  { name: 'Booster', link: '/booster' },
+  { name: 'Factory', link: '/factory' },
   { name: 'Marketplace', link: '/marketplace' },
 ];
 
 const ownerPages = [
   { name: 'Booster', link: '/booster' },
   { name: 'Factory', link: '/factory' },
-  { name: 'Store', link: '/store' },
 ];
 
 export const App = () => {
@@ -152,8 +151,7 @@ export const App = () => {
               <Route path="/factory" element={<FactoryPage  isOwner={true} />} />
               <Route path="/factory/:ClId" element={<ManagerCards isOwner={true} />} />
               <Route path="/factory/:ClId/:CrId" element={<ManagerCard isOwner={true} />} />
-              <Route path="/booster" element={<BoostersPage />} />
-              <Route path="/booster/:id" element={<BoosterDetails />} />
+              <Route path="/booster" element={<BoostersPage isOwner={true} />} />
               <Route path="/store" element={<OwnerStore />} />
               {/* <Route path="/manager/:id" element={<ManagerCard />} /> */}
               <Route path="/collections" element={<UsersCollectionsPage />} />
@@ -168,6 +166,8 @@ export const App = () => {
               <Route path="/factory" element={<FactoryPage />} />
               <Route path="/factory/:ClId" element={<ManagerCards />} />
               <Route path="/factory/:ClId/:CrId" element={<ManagerCard />} />
+              <Route path="/booster" element={<BoostersPage />} />
+              <Route path="/booster/:id" element={<BoosterDetails />} />
               <Route path="/marketplace" element={<Marketplace />} />
               <Route path="/store" element={<UserStore />} />
               {/* <Route path="/collections" element={<UsersCollectionsPage />} /> */}
