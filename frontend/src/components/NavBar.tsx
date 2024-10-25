@@ -32,7 +32,7 @@ function NavBar({ isOwner = false, pages }: NavBarProps) {
   };
 
   return (
-    <AppBar position="static" sx={{ bgcolor: "rebeccapurple" }}>
+    <AppBar position="fixed" sx={{ bgcolor: "rebeccapurple" }}> 
       <Container maxWidth="xl">
         <Toolbar disableGutters>
           <Box
@@ -93,16 +93,13 @@ function NavBar({ isOwner = false, pages }: NavBarProps) {
             >
               {pages.map((page) => (
                 <MenuItem key={page.name} onClick={handleCloseNavMenu}>
-                  
-                  <Link to="/marketplace" style={{ textDecoration: 'none', color: 'inherit' }}>
-                  <Typography
-                    component="a"
-                    // href={page.link}
-                    
-                    sx={{ textAlign: 'center', textDecoration: 'none', color: 'inherit' }}
-                  >
-                    {page.name}
-                  </Typography>
+                  <Link to={page.link} style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <Typography
+                      component="a"
+                      sx={{ textAlign: 'center', textDecoration: 'none', color: 'inherit' }}
+                    >
+                      {page.name}
+                    </Typography>
                   </Link>
                 </MenuItem>
               ))}
@@ -124,7 +121,6 @@ function NavBar({ isOwner = false, pages }: NavBarProps) {
             variant="h5"
             noWrap
             component="a"
-            // href="#app-bar-with-responsive-menu"
             sx={{
               mr: 2,
               display: { xs: 'flex', md: 'none' },
@@ -141,15 +137,13 @@ function NavBar({ isOwner = false, pages }: NavBarProps) {
 
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
             {pages.map((page) => (
-              <Link to={page.link} style={{ textDecoration: 'none', color: 'inherit' }}>
-              <Button
-                key={page.name}
-
-                onClick={handleCloseNavMenu}
-                sx={{ my: 2, color: 'white', display: 'block' }}
-              >
-                {page.name}
-              </Button>
+              <Link to={page.link} key={page.name} style={{ textDecoration: 'none', color: 'inherit' }}>
+                <Button
+                  onClick={handleCloseNavMenu}
+                  sx={{ my: 2, color: 'white', display: 'block' }}
+                >
+                  {page.name}
+                </Button>
               </Link>
             ))}
           </Box>
