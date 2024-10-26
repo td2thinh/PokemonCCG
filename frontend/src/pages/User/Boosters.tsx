@@ -1,22 +1,52 @@
 import React, { Fragment, useEffect, useState } from "react";
-import { Link, useParams, useLocation } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
 import { Img } from "react-image";
 import useStyles from "@/components/CardsStyles";
 import { useWalletContext } from "@/contexts/WalletContext";
 import { ethers } from "ethers";
 import { BoosterPack } from "@/interfaces/card";
-import { Button, Typography } from "@mui/material";
-
+import { Box, Button, Modal, Typography } from "@mui/material";
+import Grid from '@mui/material/Grid2';
+import { PokemonCard } from "@/interfaces/card";
+import axios from "axios";
+const style = {
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: 700,
+  bgcolor: 'background.paper',
+  border: '2px solid #000',
+  boxShadow: 24,
+  p: 4,
+};
 
 const Boosters = () => {
   const wallet = useWalletContext();
   const classes = useStyles();
   const [boosters, setBoosters] = useState<BoosterPack[]>([]);
-  const [showModal, setShowModal] = useState(false);
+  const [unpackedCards, setUnpackedCards] = useState<PokemonCard[]>([]);
+  const [open, setOpen] = useState(false);
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
   const handleRedeem = async (id: number, pokemonIds: string[]) => {
     try {
       await wallet.contract.redeemBooster(id);
+      pokemonIds.forEach(async (pokemonId) => {
+        await axios.get(`https://api.pokemontcg.io/v2/cards/${pokemonId}`)
+          .then((cardData: any) => {
+            const pokemonCard: PokemonCard = {
+              name: cardData.data.data.name,
+              id: cardData.data.data.id,
+              image: cardData.data.data.images.small,
+              text: cardData.data.data.text,
+            };
+            setUnpackedCards((prevCards) => [...prevCards, pokemonCard]);
+          }
+          );
+      }
+      );
+      setOpen(true);
       console.log("Booster redeemed");
     } catch (err) {
       console.error("Error redeeming booster:", err);
@@ -77,7 +107,6 @@ const Boosters = () => {
       <ul className={classes.ul}>
         {boosters.map(({ id, image, name, pokemonIds }) => (
           <li key={id} className={classes.li}>
-
             <Img
               onClick={() => handleRedeem(id, pokemonIds)}
               src={image}
@@ -88,8 +117,29 @@ const Boosters = () => {
           </li>
         ))}
       </ul>
+      <Modal
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={style}>
+          <Typography id="modal-modal-title" variant="h6" component="h2">
+            Congratulations! You have unpacked the following cards:
+          </Typography>
+          <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+            <Grid container spacing={2}>
+              {unpackedCards.map((card) => (
+                <Grid key={card.id} size={2}>
+                  <Img src={card.image} alt={card.name} />
+                </Grid>
+              ))}
+            </Grid>
+          </Typography>
+        </Box>
+      </Modal>
     </Fragment>
   );
 };
 
-export default Boosters;   
+export default Boosters;
