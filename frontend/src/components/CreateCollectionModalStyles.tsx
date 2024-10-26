@@ -12,7 +12,7 @@ const useStyles = createUseStyles({
     boxShadow: "0 4px 8px rgba(0, 0, 0, 0.3)",
     borderRadius: "10px",
     zIndex: 1000,
-    width: "60%", 
+    width: "60%",
     maxWidth: "500px",
     textAlign: "center",
   },

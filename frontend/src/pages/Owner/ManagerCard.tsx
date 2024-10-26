@@ -1,9 +1,16 @@
-import React from 'react'
+import Titre from '@/components/Titre';
+import Card from '../../components/Card'
 
-function ManagerCard() {
+interface ManagerCardProps {
+    isOwner?: boolean;
+}
+
+const ManagerCard: React.FC<ManagerCardProps> = ({ isOwner = false }) => {
+
     return (
         <div>
-            <h1>ManagerCard</h1>
+            <Titre text="Pokemon details" color="rebeccapurple" />
+            <Card isOwner={isOwner} />
         </div>
     )
 }

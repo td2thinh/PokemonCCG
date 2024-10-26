@@ -80,7 +80,7 @@ const Boosters = () => {
     };
 
     fetchBoosters();
-  }, []);
+  }, [boosters, unpackedCards]);
 
 
 

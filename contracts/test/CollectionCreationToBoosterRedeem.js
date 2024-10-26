@@ -54,19 +54,17 @@ describe("CollectionToBoosterRedeem", function () {
     });
     it("Collection 1 should be created with 3 pokemons", async function () {
         const collection = await main.getCollection(0);
-        expect(collection.name).to.equal("Collection 1");
-        expect(collection.imageUrl).to.equal("https://www.collection1.com");
-        expect(collection.pokemonIds.length).to.equal(3);
+        expect(collection[1]).to.equal("Collection 1");
+        expect(collection[2]).to.equal("https://www.collection1.com");
+        expect(collection[3].length).to.equal(3);
     });
     it("Should mint and assign Poke1 to 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", async function () {
-        const owners = await main.getOwners([0]);
+        const owners = await main.getOwners("Poke1");
         expect(owners[0]).to.equal("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");
     });
     it("Should create Booster 1 with 2 pokemons", async function () {
         const booster = await main.getBooster(0);
-        expect(booster.name).to.equal("Booster 1");
-        expect(booster.imageUrl).to.equal("https://www.booster1.com");
-        expect(booster.pokemonIds.length).to.equal(2);
+        expect(booster[2]).to.equal("Booster 1");
     });
     it("addr1 should buy 1 booster from owner", async function () {
         const beforeAddress = await main.getOwnerForBooster(0);

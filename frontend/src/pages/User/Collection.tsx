@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import * as main from '@/lib/main';
-import { Button, Typography } from '@mui/material';
+import { Button, Paper, TextField, Typography } from '@mui/material';
 import { useWalletContext } from '@/contexts/WalletContext';
 import { PokemonCard } from '@/interfaces/card';
 import { ethers } from 'ethers';
@@ -8,10 +8,25 @@ import Skeleton from "react-loading-skeleton";
 import useStyles from "@/components/CardsStyles";
 import axios from 'axios';
 import { Img } from 'react-image';
+import { Box, Modal } from '@mui/material';
+import { styled } from '@mui/material/styles';
+import Grid from '@mui/material/Grid2';
 
 // uint tokenId;      // token ID
 // uint collectionId;  // collection ID
 // string pokemonId;   // pokemon ID
+
+const style = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 700,
+    bgcolor: 'background.paper',
+    border: '2px solid #000',
+    boxShadow: 24,
+    p: 4,
+};
 
 interface CardTokenProps {
     tokenId: number;
@@ -24,7 +39,10 @@ interface CardTokenProps {
 function Collection() {
     const wallet = useWalletContext();
     const [tokens, setTokens] = useState<CardTokenProps[]>([]);
-
+    const [open, setOpen] = useState(false);
+    const [price, setPrice] = useState("");
+    const handleOpen = () => setOpen(true);
+    const handleClose = () => setOpen(false);
 
     useEffect(() => {
         const fetchTokens = async () => {
@@ -60,14 +78,13 @@ function Collection() {
         fetchTokens();
     }, []);
 
-    const [showModal, setShowModal] = useState(false);
     const [clickedToken, setClickedToken] = useState<CardTokenProps | null>(null);
     const classes = useStyles();
 
     return (
         <>
             <Typography
-                variant="h2"
+                variant="h4"
                 align="center"
                 sx={{
                     fontWeight: 700,
@@ -78,7 +95,7 @@ function Collection() {
 
                 }}
             >
-                Your Cards
+                Your Cards, click to put one in the market
             </Typography>
             <div>
                 <ul className={classes.ul}>
@@ -86,7 +103,7 @@ function Collection() {
                         <li key={token.tokenId} className={classes.li}>
                             <Img
                                 onClick={() => {
-                                    setShowModal(true);
+                                    handleOpen();
                                     setClickedToken(token);
                                 }}
                                 src={token.card.image}
@@ -98,7 +115,46 @@ function Collection() {
                     ))}
                 </ul>
             </div>
-
+            <Modal
+                open={open}
+                onClose={handleClose}
+                aria-labelledby="modal-modal-title"
+                aria-describedby="modal-modal-description"
+            >
+                <Box sx={style}>
+                    <Typography id="modal-modal-title" variant="h2" component="h2" align="center" fontFamily={"monospace"} color='rebeccapurple'>
+                        Sell this card
+                    </Typography>
+                    <Grid container spacing={2}>
+                        <Img src={clickedToken?.card.image} />
+                        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                            <Typography variant="h4">{clickedToken?.card.name}</Typography>
+                            <Typography variant="h6">{clickedToken?.pokemonId}</Typography>
+                            <TextField
+                                label="Price"
+                                value={price}
+                                defaultValue="0.1"
+                                onChange={(e) => setPrice(e.target.value)}
+                            />
+                            <Button
+                                onClick={async () => {
+                                    if (!wallet.contract) {
+                                        console.error("Wallet contract is not initialized");
+                                        return;
+                                    }
+                                    await wallet.contract.listItem(clickedToken?.tokenId, ethers.utils.parseEther(price))
+                                        .then((tx: any) => {
+                                            console.log("Transaction hash:", tx.hash);
+                                            handleClose();
+                                        });
+                                }}
+                            >
+                                Sell
+                            </Button>
+                        </Box>
+                    </Grid>
+                </Box>
+            </Modal>
         </>
     )
 }

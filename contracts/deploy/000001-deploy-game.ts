@@ -66,12 +66,22 @@ const deployer: DeployFunction = async hre => {
   await mainContract
     .connect(owner)
     .mintAndAssign('0xcd3B766CCDd6AE721141F452C550Ca635964ce71', 0, 'base1-1')
+  await mainContract.connect(owner).mintAndAssign(owner.address, 0, 'base1-1')
+  await mainContract
+    .connect(owner)
+    .listItem(1, hre.ethers.utils.parseEther('0.1'))
+  await mainContract
+    .connect(owner)
+    .mintAndAssign('0xcd3B766CCDd6AE721141F452C550Ca635964ce71', 0, 'base1-2')
   const myAddress = await hre.ethers.getSigner(
     '0xcd3B766CCDd6AE721141F452C550Ca635964ce71'
   )
   await mainContract.connect(myAddress).buyBooster(0, myAddress.address, {
     value: hre.ethers.utils.parseEther('0.1'),
   })
+  await mainContract
+    .connect(myAddress)
+    .listItem(2, hre.ethers.utils.parseEther('0.1'))
   console.log('Main deployed at:', mainAddress)
 }
 

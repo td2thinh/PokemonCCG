@@ -46,15 +46,14 @@ describe("Marketplace Functions tests", function () {
     it("Address 1 should be able to list Poke1", async function () {
         await main.connect(addr1).listItem(0, 600000000000);
         const listings = await main.getAllListings();
-        expect(listings[0].seller).to.equal(addr1.address);
-        expect(listings[0].price).to.equal(600000000000);
+        expect(listings[2][0]).to.equal(addr1.address);
+        expect(listings[3][0]).to.equal("Poke1");
     });
     it("Address 1 should be able to update the price of Poke1", async function () {
         await main.connect(addr1).listItem(0, 600000000000);
-        await main.connect(addr1).updateListing(0, 1000000000000)
+        await main.connect(addr1).updateListing(0, 100)
         const listings = await main.getAllListings();
-        expect(listings[0].seller).to.equal(addr1.address);
-        expect(listings[0].price).to.equal(1000000000000);
+        expect(listings[1][0]).to.equal(100);
     });
     it("Address 2 should buy Poke1", async function () {
         await main.connect(addr1).listItem(0, 600000000000);

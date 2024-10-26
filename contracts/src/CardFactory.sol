@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 /// @custom:security-contact td2thinh@gmail.com
 contract CardFactory is ERC721, ERC721Enumerable, Ownable {
-    uint256 private _nextTokenId;
+    uint256 public _nextTokenId;
 
     constructor(address initialOwner)
         ERC721("Pokemon Card", "POCKET")

@@ -4,6 +4,7 @@ import "./CollectionManager.sol";
 
 contract Marketplace is CollectionManager {
     struct Listing {
+        uint tokenId;
         uint256 price;
         address seller;
         string pokemonId;
@@ -26,11 +27,11 @@ contract Marketplace is CollectionManager {
         external
     {
         require(ownerOf(tokenId) == msg.sender, "Not the owner");
-        listings[tokenId] = Listing(price, msg.sender, getCard(tokenId).pokemonId);
+        listings[tokenId] = Listing(tokenId, price, msg.sender, getCard(tokenId).pokemonId);
         // Transfer the token to this contract
         transferFrom(msg.sender, address(this), tokenId);
         // Create listing
-        listings[tokenId] = Listing(price, msg.sender, getCard(tokenId).pokemonId);
+        listings[tokenId] = Listing(tokenId, price, msg.sender, getCard(tokenId).pokemonId);
     }
 
     /**
@@ -97,9 +98,10 @@ contract Marketplace is CollectionManager {
     function getListing(uint256 tokenId)
         external
         view
-        returns (Listing memory)
+        returns (uint, uint256, address, string memory)
     {
-        return listings[tokenId];
+        Listing memory listing = listings[tokenId];
+        return (listing.tokenId, listing.price, listing.seller, listing.pokemonId);
     }
     /**
      * Get all listings
@@ -116,21 +118,29 @@ contract Marketplace is CollectionManager {
     function getAllListings() 
         external 
         view 
-        returns (Listing[] memory) {
-        uint totalListings = 0;
-        for (uint256 i = 0; i < totalSupply(); i++) {
+        returns (uint[] memory, uint256[] memory, address[] memory, string[] memory)
+    {
+        uint count = 0;
+        for (uint i = 0; i < _nextTokenId; i++) {
             if (listings[i].seller != address(0)) {
-                totalListings++;
+                count++;
             }
         }
-        Listing[] memory result = new Listing[](totalListings);
+        uint[] memory tokenIds = new uint[](count);
+        uint256[] memory prices = new uint256[](count);
+        address[] memory sellers = new address[](count);
+        string[] memory pokemonIds = new string[](count);
         uint index = 0;
-        for (uint256 i = 0; i < totalSupply(); i++) {
+        for (uint i = 0; i < _nextTokenId; i++) {
             if (listings[i].seller != address(0)) {
-                result[index] = listings[i];
+                Listing memory listing = listings[i];
+                tokenIds[index] = listing.tokenId;
+                prices[index] = listing.price;
+                sellers[index] = listing.seller;
+                pokemonIds[index] = listing.pokemonId;
                 index++;
             }
         }
-        return result;
+        return (tokenIds, prices, sellers, pokemonIds);
     }
 }
