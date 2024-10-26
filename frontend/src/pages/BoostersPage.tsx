@@ -1,17 +1,17 @@
 import React from 'react';
-import Titre from '@/Components/Titre';
-import Boosters from '@/Components/Boosters';
+import Titre from '@/components/Titre';
+import Boosters from '@/components/Boosters';
 
 interface FactoryPageProps {
     isOwner?: boolean;
-  }
-  
-function BoostersPage() {
-  
+}
+
+function BoostersPage({ isOwner = false }: FactoryPageProps) {
+
     return (
         <div>
-            <Titre text="Booster " color="rebeccapurple" />
-            < Boosters isOwner={true} id={""} />
+            <Titre text="Create Booster Packs for sale" color="rebeccapurple" />
+            <Boosters isOwner={isOwner} />
         </div>
     )
 }

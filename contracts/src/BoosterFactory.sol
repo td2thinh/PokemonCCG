@@ -30,42 +30,87 @@ contract BoosterFactory is ERC721, ERC721Enumerable, Ownable, ERC721Burnable  {
     function getBooster(uint256 tokenId) 
         public 
         view 
-        returns (Booster memory) {
-        return _boosters[tokenId];
+        returns (uint, uint, string memory, string[] memory, uint, string memory, uint256)
+    {
+        Booster memory booster = _boosters[tokenId];
+        return (booster.tokenId, booster.collectionId, booster.name, booster.pokemonIds, booster.pokemonCount, booster.imageUrl, booster.price);
     }
-
+    /**
+     * Get multiple boosters by token IDs
+     * @param tokenIds The list of token IDs
+     */
     function getMultipleBoosters(uint256[] memory tokenIds) 
         public 
         view 
-        returns (Booster[] memory) {
-        Booster[] memory boosters = new Booster[](tokenIds.length);
+        returns (uint[] memory, uint[] memory, string[] memory, string[][] memory, uint[] memory, string[] memory, uint256[] memory)
+    {
+        uint count = 0;
         for (uint256 i = 0; i < tokenIds.length; i++) {
-            boosters[i] = _boosters[tokenIds[i]];
+            if (_boosters[tokenIds[i]].pokemonCount > 0) {
+                count++;
+            }
         }
-        return boosters;
+        uint[] memory tokenIdsResult = new uint[](count);
+        uint[] memory collectionIds = new uint[](count);
+        string[] memory names = new string[](count);
+        string[] memory imageUrls = new string[](count);
+        string[][] memory pokemonIds = new string[][](count);
+        uint[] memory pokemonCounts = new uint[](count);
+        uint256[] memory prices = new uint256[](count);
+        uint j = 0;
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            if (_boosters[tokenIds[i]].pokemonCount > 0) {
+                tokenIdsResult[j] = _boosters[tokenIds[i]].tokenId;
+                collectionIds[j] = _boosters[tokenIds[i]].collectionId;
+                names[j] = _boosters[tokenIds[i]].name;
+                imageUrls[j] = _boosters[tokenIds[i]].imageUrl;
+                pokemonIds[j] = _boosters[tokenIds[i]].pokemonIds;
+                pokemonCounts[j] = _boosters[tokenIds[i]].pokemonCount;
+                prices[j] = _boosters[tokenIds[i]].price;
+                j++;
+            }
+        }
+        return (tokenIdsResult, collectionIds, names, pokemonIds, pokemonCounts, imageUrls, prices);
     }
-
+    /**
+     * Get all boosters
+     */
     function getAllBoosters() 
         public 
         view 
-        returns (Booster[] memory) {
+        returns (uint[] memory, uint[] memory, string[] memory, string[][] memory, uint[] memory, string[] memory, uint256[] memory)
+    {
         uint count = 0;
         for (uint256 i = 0; i < _nextTokenId; i++) {
             if (_boosters[i].pokemonCount > 0) {
                 count++;
             }
         }
-        Booster[] memory result = new Booster[](count);
-        uint index = 0;
+        uint[] memory tokenIds = new uint[](count);
+        uint[] memory collectionIds = new uint[](count);
+        string[] memory names = new string[](count);
+        string[] memory imageUrls = new string[](count);
+        string[][] memory pokemonIds = new string[][](count);
+        uint[] memory pokemonCounts = new uint[](count);
+        uint256[] memory prices = new uint256[](count);
+        uint j = 0;
         for (uint256 i = 0; i < _nextTokenId; i++) {
             if (_boosters[i].pokemonCount > 0) {
-                result[index] = _boosters[i];
-                index++;
+                tokenIds[j] = _boosters[i].tokenId;
+                collectionIds[j] = _boosters[i].collectionId;
+                names[j] = _boosters[i].name;
+                imageUrls[j] = _boosters[i].imageUrl;
+                pokemonIds[j] = _boosters[i].pokemonIds;
+                pokemonCounts[j] = _boosters[i].pokemonCount;
+                prices[j] = _boosters[i].price;
+                j++;
             }
         }
-        return result;
+        return (tokenIds, collectionIds, names, pokemonIds, pokemonCounts, imageUrls, prices);
     }
-    
+    /**
+     * Get all boosters
+     */
     function getOwnedBoosters(address owner) 
         public 
         view 
@@ -77,7 +122,27 @@ contract BoosterFactory is ERC721, ERC721Enumerable, Ownable, ERC721Burnable  {
         }
         return ownedTokens;
     } 
-
+    /**
+     * Get boosters for sale, which is all the boosters owned by the contract creator
+     * @param contractCreator The address of the contract creator
+     */
+    function getBoostersForSale(address contractCreator)
+        public
+        view
+          returns (uint[] memory, uint[] memory, string[] memory, string[][] memory, uint[] memory, string[] memory, uint256[] memory)
+    {
+        uint[] memory tokenIds = getOwnedBoosters(contractCreator);
+        return getMultipleBoosters(tokenIds);
+    }
+    /**
+     * Create a booster
+     * @param name The name of the booster
+     * @param imageUrl The image URL of the booster
+     * @param collectionId The collection ID
+     * @param pokemonIds The list of pokemon IDs
+     * @param pokemonCount The number of pokemon in the booster
+     * @param price The price of the booster
+     */
     function createBooster(string memory name, string memory imageUrl, uint256 collectionId, string[] memory pokemonIds, uint pokemonCount, uint256 price)
         public  
         onlyOwner 
@@ -87,8 +152,11 @@ contract BoosterFactory is ERC721, ERC721Enumerable, Ownable, ERC721Burnable  {
         _mint(owner(), tokenId);
         return tokenId;
     }
-
-    
+    /**
+     * Pick n random IDs from a list of IDs
+     * @param allIds The list of IDs
+     * @param n The number of IDs to pick
+     */    
     function pickRandomIds(string[] memory allIds, uint n) 
         private 
         view 
@@ -96,12 +164,16 @@ contract BoosterFactory is ERC721, ERC721Enumerable, Ownable, ERC721Burnable  {
     {
         string[] memory result = new string[](n);
         for (uint i = 0; i < n; i++) {
-            uint index = uint(keccak256(abi.encodePacked(block.timestamp,msg.sender,_nextTokenId))) % allIds.length;
+            uint index = uint(keccak256(abi.encodePacked(block.timestamp, msg.sender,_nextTokenId, i))) % allIds.length;
             result[i] = allIds[index];
         }
         return result;
     }
-
+    /**
+     * Buy a booster
+     * @param tokenId The token ID of the booster
+     * @param to The address to buy the booster for
+     */
     function buyBooster(uint256 tokenId, address to)
         public 
         payable {

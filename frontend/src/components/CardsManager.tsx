@@ -9,7 +9,7 @@ interface ModalManagerProps {
   handleInputChange: (cardId: string, value: number) => void;
   handleAssign: () => void;
   handleCloseModal: () => void;
-  isOwner: boolean; 
+  isOwner: boolean;
 }
 
 const ModalManager: React.FC<ModalManagerProps> = ({
@@ -20,7 +20,7 @@ const ModalManager: React.FC<ModalManagerProps> = ({
   handleInputChange,
   handleAssign,
   handleCloseModal,
-  isOwner, 
+  isOwner,
 }) => {
   const classes = useModalStyles(); // Utiliser les styles du modal
 
@@ -28,11 +28,11 @@ const ModalManager: React.FC<ModalManagerProps> = ({
     <Fragment>
       <div className={classes.overlay} onClick={handleCloseModal}></div>
       <div className={classes.modal}>
-        <h2>Manager les cartes sélectionnées</h2>
+        <h2>Minting chosen cards</h2>
 
         {isOwner && (
           <div className={classes.formGroup}>
-            <label>Assigné à</label>
+            <label>Minting to</label>
             <input
               type="text"
               value={assignTo}
@@ -61,16 +61,16 @@ const ModalManager: React.FC<ModalManagerProps> = ({
 
         <div className={classes.buttons}>
           <button className={classes.closeButton} onClick={handleCloseModal}>
-            Fermer
+            Close
           </button>
 
           {isOwner ? (
             <button className={classes.assignButton} onClick={handleAssign}>
-              Assigner
+              Mint
             </button>
           ) : (
             <button className={classes.assignButton} onClick={handleAssign}>
-              Vendre
+              List for sale
             </button>
           )}
         </div>

@@ -1,6 +1,7 @@
-import React, { Fragment } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import useStyles from "./CreateCollectionModalStyles"; // Import du hook de styles
-import useCards from "../Hooks/useCards.tsx";
+import axios from "axios";
+import { PokemonCard } from "@/interfaces/card";
 
 interface CreateCollectionModalProps {
   showModal: boolean;
@@ -26,10 +27,28 @@ const CreateCollectionModal: React.FC<CreateCollectionModalProps> = ({
   handleCreateCollection,
 }) => {
   const classes = useStyles();
-   // on va recuperer toute les cartes pour la suggestion de creation de collection
-  const { cards } = useCards("null", true);
-  console.log(cards);
-  
+  // on va recuperer toute les cartes pour la suggestion de creation de collection
+  // only use cards from base1 set 
+  const [cards, setCards] = useState([] as PokemonCard[]);
+  useEffect(() => {
+    const fetchCards = async () => {
+      axios.get(`https://api.pokemontcg.io/v2/cards?q=set.id:base1`)
+        .then((res) => {
+          let newCard: PokemonCard[] = [];
+          res.data.data.forEach((card: any) => {
+            newCard.push({
+              name: card.name,
+              id: card.id,
+              image: card.images.small,
+              text: card.flavorText,
+            });
+          });
+          setCards(newCard);
+        })
+    };
+    fetchCards();
+  }, []);
+
 
   if (!showModal) {
     return null; // Ne rien rendre si le modal n'est pas ouvert

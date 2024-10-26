@@ -1,20 +1,53 @@
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { Link, useParams, useLocation } from "react-router-dom";
 import Skeleton from "react-loading-skeleton";
 import { Img } from "react-image";
-import useCards from "../Hooks/useCards.tsx";
 import useStyles from "./CardsStyles";
 import ModalManager from "./CardsManager"; // Import du composant
+import { useWalletContext } from "@/contexts/WalletContext";
+import axios from "axios";
+import { PokemonCard } from "@/interfaces/card";
 
 interface CardsProps {
   isOwner: boolean; // Nouveau paramètre pour indiquer si l'utilisateur est propriétaire
 }
 
+
+
 const Cards: React.FC<CardsProps> = ({ isOwner }) => {
-  const { type } = useParams();
+  const { ClId } = useParams<{ ClId: string }>();
+  const collectionId = parseInt(ClId!);
+  const [cards, setCards] = useState<PokemonCard[]>([]);
+  const wallet = useWalletContext();
   const { pathname } = useLocation();
   const classes = useStyles();
-  const { cards } = useCards(type);
+  useEffect(() => {
+    const fetchCollection = async () => {
+      if (!wallet.contract) {
+        console.error("Wallet contract is not initialized");
+        return;
+      }
+      const collection = await wallet.contract.getCollection(collectionId).then((collection: any) => {
+        collection[3].forEach((cardId: string) => {
+          axios.get(`https://api.pokemontcg.io/v2/cards/${cardId}`)
+            .then((card: any) => {
+              const pokemonCard: PokemonCard = {
+                name: card.data.data.name,
+                id: card.data.data.id,
+                image: card.data.data.images.small,
+                text: card.data.data.text,
+              };
+              setCards((prevCards) => [...prevCards, pokemonCard]);
+            }
+            );
+        });
+      });
+    }
+    fetchCollection();
+    return () => {
+      setCards([]);
+    }
+  }, []);
   const [selectedCards, setSelectedCards] = useState<string[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [assignTo, setAssignTo] = useState("");
@@ -33,12 +66,12 @@ const Cards: React.FC<CardsProps> = ({ isOwner }) => {
   };
 
   const handleOpenModal = () => {
-    console.log("Opening modal");  
+    console.log("Opening modal");
     setShowModal(true);
   };
 
   const handleCloseModal = () => {
-    console.log("Closing modal");  
+    console.log("Closing modal");
     setShowModal(false);
   };
 
@@ -49,17 +82,25 @@ const Cards: React.FC<CardsProps> = ({ isOwner }) => {
     }));
   };
 
-  const handleAssign = () => {
-    console.log("Assigned to:", assignTo);
-    console.log("Cards:", formData);
+  const handleAssign = async () => {
+    const pokemonIds = selectedCards.flatMap((cardId) =>
+      Array(formData[cardId]?.nbCard || 1).fill(cardId)
+    );
+    const mintTx = await wallet.contract?.mintAndAssignBatch(
+      assignTo,
+      collectionId,
+      pokemonIds
+    );
+    console.log("Mint transaction:", mintTx);
+
     handleCloseModal();
   };
 
-  // Vérifie si les cartes sont bien chargées
-  if (!cards.length) {
-    console.log("No cards available");  
-    return <Skeleton count={10} />;
-  }
+  // // Vérifie si les cartes sont bien chargées
+  // if (!cards.length) {
+  //   console.log("No cards available");
+  //   return <Skeleton count={10} />;
+  // }
 
   return (
     <Fragment>
@@ -80,7 +121,7 @@ const Cards: React.FC<CardsProps> = ({ isOwner }) => {
                 checked={selectedCards.includes(id)}
                 onChange={() => handleSelectCard(id)}
               />
-              <label> Sélectionner {name}</label>
+              <label> Pick {name}</label>
             </div>
           </li>
         ))}
@@ -88,7 +129,7 @@ const Cards: React.FC<CardsProps> = ({ isOwner }) => {
 
       {selectedCards.length > 0 && (
         <button className={classes.managerButton} onClick={handleOpenModal}>
-          Manager ({selectedCards.length})
+          Mint ({selectedCards.length})
         </button>
       )}
 
@@ -104,7 +145,7 @@ const Cards: React.FC<CardsProps> = ({ isOwner }) => {
           handleInputChange={handleInputChange}
           handleAssign={handleAssign}
           handleCloseModal={handleCloseModal}
-          isOwner={isOwner} 
+          isOwner={isOwner}
         />
       )}
     </Fragment>

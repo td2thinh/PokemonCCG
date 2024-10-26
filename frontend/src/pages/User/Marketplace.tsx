@@ -32,7 +32,7 @@ const handleDelist = async (contract: main.Main, tokenId: string) => {
     console.log('Transaction:', tx);
 }
 
-function Marketplace({ wallet, contract }: { wallet: string | undefined, contract: main.Main }) {
+function Marketplace() {
     return (
         <>
             <Button variant="contained" color="primary" onClick={() => handleGetAllCards(contract, "0x976EA74026E726554dB657fA54763abd0C3a0aa9")}>

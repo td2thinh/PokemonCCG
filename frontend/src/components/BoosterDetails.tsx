@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { createUseStyles } from "react-jss";
 import { useParams } from "react-router-dom";
-
+import { useWalletContext } from "@/contexts/WalletContext";
+import { BoosterPack } from "@/interfaces/card";
+import { PokemonCard } from "@/interfaces/card";
+import { ethers } from "ethers";
+import { useNavigate } from "react-router-dom";
 // Simulate a function to fetch booster details by ID
 const fetchBoosterById = (id: string) => {
   // Simulated data
@@ -81,66 +85,111 @@ const useStyles = createUseStyles({
   },
 });
 
-function BoosterDetails() {
+function BoosterDetails({ isOwner }: { isOwner: boolean }) {
+  const navigate = useNavigate();
+  const wallet = useWalletContext();
   const classes = useStyles();
-  const [booster, setBooster] = useState<{ imageUrl: string; cardCount: number; price: number; inSell: boolean } | null>(null);
+  const [booster, setBooster] = useState<BoosterPack | null>(null);
   const { id } = useParams<{ id: string }>();
-
+  const boosterId = parseInt(id || "0");
+  const [boosterPopUp, setBoosterPopUp] = useState(false);
+  const [cards, setCards] = useState<PokemonCard[]>([]);
   // Fetch booster details when the component mounts
   useEffect(() => {
-    const fetchedBooster = fetchBoosterById(id || "");
-    if (fetchedBooster) {
-      setBooster(fetchedBooster);
-    }
-  }, [id]);
+    const fetchBooster = async () => {
+      const booster = await wallet.contract?.getBooster(boosterId);
+      let boosterPack: BoosterPack = {
+        id: booster[0].toNumber(),
+        collectionId: booster[1].toNumber(),
+        name: booster[2],
+        pokemonIds: booster[3],
+        cardCount: booster[4].toNumber(),
+        image: booster[5],
+        price: ethers.utils.formatEther(booster[6]),
+      };
+      setBooster(boosterPack);
+      boosterPack.pokemonIds.forEach((pokemonId: string) => {
+        fetch(`https://api.pokemontcg.io/v2/cards/${pokemonId}`)
+          .then((response) => response.json())
+          .then((data) => {
+            const card = data.data;
+            const pokemonCard: PokemonCard = {
+              name: card.name,
+              id: card.id,
+              image: card.images.small,
+              text: card.flavorText,
+            };
+            setCards((prevCards) => [...prevCards, pokemonCard]);
+          });
+      });
+    };
+    fetchBooster()
+  }, []);
 
-  const handleSell = () => {
-    console.log("Booster sold!");
-    if (booster) {
-      setBooster({ ...booster, inSell: true });
-    }
-  };
+  // const handleSell = () => {
+  //   console.log("Booster sold!");
+  //   if (booster) {
+  //     setBooster({ ...booster, inSell: true });
+  //   }
+  // };
 
-  const handleCancelSale = () => {
-    console.log("Sale canceled!");
-    if (booster) {
-      setBooster({ ...booster, inSell: false });
-    }
-  };
+  // const handleCancelSale = () => {
+  //   console.log("Sale canceled!");
+  //   if (booster) {
+  //     setBooster({ ...booster, inSell: false });
+  //   }
+  // };
 
-  const handleRedeem = () => {
-    console.log("Booster redeemed!");
+  const handleRedeem = async () => {
+    await wallet.contract?.redeemBooster(boosterId);
+    setBoosterPopUp(true);
+    // wait for 5 seconds before closing the pop-up
+    setTimeout(() => {
+      setBoosterPopUp(false);
+      navigate("/booster");
+    }, 3000);
   };
 
   if (!booster) {
     return <div>Loading booster details...</div>;
   }
-
-  return (
-    <div className={classes.container}>
-      <img src={booster.imageUrl} alt="Booster" className={classes.image} />
-      <div className={classes.details}>
-        <p><strong>Card Count:</strong> {booster.cardCount}</p>
-        <p><strong>Price:</strong> ${booster.price}</p>
+  if (isOwner) {
+    return (
+      <div className={classes.container}>
+        <img src={booster.image} alt="Booster" className={classes.image} />
+        <div className={classes.details}>
+          <p><strong>Card Count:</strong> {booster.cardCount}</p>
+          <p><strong>Price:</strong> {booster.price} ETH</p>
+        </div>
       </div>
+    )
+  }
+  else {
+    return (
+      <div className={classes.container}>
+        <img src={booster.image} alt="Booster" className={classes.image} />
+        <div className={classes.details}>
+          <p><strong>Card Count:</strong> {booster.cardCount}</p>
+          <p><strong>Price:</strong> ${booster.price}</p>
+        </div>
 
-      {/* Grouping Sell/Cancel Sale and Redeem button */}
-      <div className={classes.buttonGroup}>
-        {booster.inSell ? (
-          <button className={classes.cancelButton} onClick={handleCancelSale}>
-            Cancel Sale
-          </button>
-        ) : (
-          <button className={classes.button} onClick={handleSell}>
-            Sell
-          </button>
-        )}
+        {/* Grouping Sell/Cancel Sale and Redeem button
+        <div className={classes.buttonGroup}>
+          {booster.inSell ? (
+            <button className={classes.cancelButton} onClick={handleCancelSale}>
+              Cancel Sale
+            </button>
+          ) : (
+            <button className={classes.button} onClick={handleSell}>
+              Sell
+            </button>
+          )}
+        </div> */}
+
       </div>
-      <button className={classes.redeemButton} onClick={handleRedeem}>
-        Redeem
-      </button>
-    </div>
-  );
+    );
+  }
 }
+
 
 export default BoosterDetails;

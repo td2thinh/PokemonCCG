@@ -1,15 +1,15 @@
-import BoosterDetails from '@/Components/BoosterDetails'
-import Titre from '@/Components/Titre'
+import BoosterDetails from '@/components/BoosterDetails'
+import Titre from '@/components/Titre'
 import React from 'react'
 
 
-function BoosterDetailsPage() {
+function BoosterDetailsPage({ isOwner = false }) {
     return (
         <div>
-            <Titre text="Booster Details " color="rebeccapurple" />
-            <BoosterDetails />
+            <Titre text={"Booster Details"} color="rebeccapurple" />
+            <BoosterDetails isOwner={isOwner} />
         </div>
     )
-}   
+}
 
 export default BoosterDetailsPage

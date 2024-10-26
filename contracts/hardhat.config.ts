@@ -30,8 +30,17 @@ const config: HardhatUserConfig = {
   },
   networks: {
     hardhat: {
-      blockGasLimit: 0xfffffffffff,
-      gasPrice: 20000000000,
+      mining: {
+        auto: true,
+        interval: 0, // Mine blocks as fast as possible
+        mempool: {
+          order: 'priority', // Process higher gas price txs first
+        },
+      },
+      // Increase block gas limit if you have complex transactions
+      blockGasLimit: 30000000,
+      // Allow parallel transaction processing
+      allowUnlimitedContractSize: true,
     },
   },
   namedAccounts: {

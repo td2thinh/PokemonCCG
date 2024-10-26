@@ -2,8 +2,10 @@ import React, { useState } from "react";
 import { createUseStyles } from "react-jss";
 import { useParams } from "react-router-dom";
 import Icon from "./Icon";
-import useCard from "../Hooks/useCard.tsx";
-import useCardOwners from "@/Hooks/useCardOwners";
+import { useWalletContext } from "@/contexts/WalletContext";
+import { PokemonCard } from "@/interfaces/card";
+import axios from "axios";
+import { useEffect } from "react";
 
 const useStyles = createUseStyles({
   container: {
@@ -14,7 +16,7 @@ const useStyles = createUseStyles({
   },
   cardOwnersSection: {
     display: "flex",
-    justifyContent: "space-between", 
+    justifyContent: "space-between",
     alignItems: "center",
     marginBottom: "20px",
   },
@@ -69,18 +71,18 @@ const useStyles = createUseStyles({
   quantityField: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "center", 
+    justifyContent: "center",
     marginBottom: "10px",
   },
   label: {
-    marginRight: "25px", 
+    marginRight: "25px",
     fontWeight: "bold",
     width: "100px",
   },
   assignField: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "center", 
+    justifyContent: "center",
     marginBottom: "10px",
   },
   modal: {
@@ -93,7 +95,7 @@ const useStyles = createUseStyles({
     boxShadow: "0 4px 8px rgba(0, 0, 0, 0.3)",
     borderRadius: "10px",
     zIndex: 1000,
-    width: "60%", 
+    width: "60%",
     maxWidth: "500px",
     textAlign: "center",
   },
@@ -126,30 +128,70 @@ const useStyles = createUseStyles({
 });
 
 const Card = ({ isOwner }: { isOwner: boolean }) => {
-  const { id } = useParams();
+  const wallet = useWalletContext();
+  const { CrId } = useParams();
+  const { ClId } = useParams();
+  const collectionId = parseInt(ClId!);
+  const id = String(CrId);
   const classes = useStyles();
-  const { card } = useCard(id);
-  const { owners: cardOwners } = useCardOwners(id);
+  const [card, setCards] = useState<PokemonCard | "Error" | null>(null);
+  const [cardOwners, setCardOwners] = useState([]);
   const [assignTo, setAssignTo] = useState("");
   const [nbCard, setNbCard] = useState(1);
   const [showOwners, setShowOwners] = useState(false); // État pour afficher le pop-up
 
+  useEffect(() => {
+    axios
+      .get(`https://api.pokemontcg.io/v2/cards/${id}`)
+      .then((res) => {
+        const { data } = res.data;
+        setCards({
+          name: data.name,
+          image: data.images.small,
+          id: data.id,
+          text: data.flavorText
+        });
+      })
+      .catch((err) => {
+        console.error("Error fetching card:", err);
+        setCards("Error");
+      });
+
+  }, []);
+
+
+
   if (!card) return <div>Loading...</div>;
   if (card === "Error") return <div>Error page</div>;
 
-  const { image, name, text, size } = card;
+  const { image, name, text } = card;
 
-  const handleAssign = () => {
-    console.log(`Card assigned to: ${assignTo} (Nb Card: ${nbCard})`);
+  const handleAssign = async () => {
+    const pokemonIds = Array(nbCard).fill(id);
+    const mintTx = await wallet.contract?.mintAndAssignBatch(assignTo, collectionId, pokemonIds);
+    console.log("Mint transaction:", mintTx);
   };
 
   const handleSell = () => {
     console.log(`Card sold (Nb Card: ${nbCard})`);
   };
 
-  const toggleOwnersPopup = () => {
+  const toggleOwnersPopup = async () => {
+    const owners = await wallet.contract.getOwners(id);
+    setCardOwners(owners);
     setShowOwners(!showOwners);
   };
+
+  const countOccurrencesAddress = (list: string[]) => {
+    let dictionary = {} as { [key: string]: number };
+    list.forEach((item) => {
+      if (!dictionary[item]) {
+        dictionary[item] = 0;
+      }
+      dictionary[item]++;
+    });
+    return dictionary;
+  }
 
   return (
     <div className={classes.container}>
@@ -163,7 +205,7 @@ const Card = ({ isOwner }: { isOwner: boolean }) => {
       </h1>
       <div className={classes.cardOwnersSection}>
         <div className={classes.card}>
-          <Icon name={name} text={text} img={image} size={size} />
+          <Icon name={name} text={text} img={image} size="Large" />
         </div>
       </div>
 
@@ -182,16 +224,16 @@ const Card = ({ isOwner }: { isOwner: boolean }) => {
         {isOwner ? (
           <form className={classes.form} onSubmit={(e) => e.preventDefault()}>
             <div className={classes.assignField}>
-              <label className={classes.label}>Assign to</label>
+              <label className={classes.label}>Address</label>
               <input
                 type="text"
-                placeholder="key of assignment"
+                placeholder="Wallet Address to mint to"
                 value={assignTo}
                 onChange={(e) => setAssignTo(e.target.value)}
               />
             </div>
             <button className={classes.button} type="button" onClick={handleAssign}>
-              Assign
+              Mint Card
             </button>
           </form>
         ) : (
@@ -199,7 +241,7 @@ const Card = ({ isOwner }: { isOwner: boolean }) => {
             Sell
           </button>
         )}
-        
+
         {/* Pop-up des propriétaires */}
         {showOwners && (
           <div className={classes.overlay} onClick={toggleOwnersPopup}>
@@ -207,9 +249,9 @@ const Card = ({ isOwner }: { isOwner: boolean }) => {
               <h2>Owners</h2>
               <div className={classes.ownerList}>
                 {cardOwners.length ? (
-                  cardOwners.map((owner) => (
-                    <p key={owner.id}>
-                      {owner.name} - {owner.cardCount} cards
+                  Object.entries(countOccurrencesAddress(cardOwners)).map(([address, count]) => (
+                    <p key={address}>
+                      {address} : {count} cards
                     </p>
                   ))
                 ) : (

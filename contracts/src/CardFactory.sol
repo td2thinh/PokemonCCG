@@ -24,9 +24,6 @@ contract CardFactory is ERC721, ERC721Enumerable, Ownable {
 
     // Mapping from token ID to card
     mapping(uint256 => Card) private _cards;
-    mapping(string => uint256) private _pokemonIdToTokenId;
-    
-    
 
     function getDeployer() 
         public 
@@ -41,7 +38,10 @@ contract CardFactory is ERC721, ERC721Enumerable, Ownable {
         returns (Card memory) {
         return _cards[tokenId];
     }
-
+    /**
+     * Get multiple cards by token IDs
+     * @param tokenIds The list of token IDs
+     */
     function getMultipleCards(uint256[] memory tokenIds) 
         public 
         view 
@@ -52,7 +52,12 @@ contract CardFactory is ERC721, ERC721Enumerable, Ownable {
         }
         return cards;
     }
-
+    /**
+     * Mint a card and assign it to an address
+     * @param to  The address to mint the card to
+     * @param collectionId The collection ID
+     * @param pokemonId The pokemon ID
+     */
     function mintAndAssign(address to, uint256 collectionId, string memory pokemonId)
         public
         onlyOwner
@@ -62,10 +67,14 @@ contract CardFactory is ERC721, ERC721Enumerable, Ownable {
         _mint(to, tokenId);
         setApprovalForAll(address(this), true);
         _cards[tokenId] = Card(tokenId, collectionId, pokemonId);
-        _pokemonIdToTokenId[pokemonId] = tokenId;
         return tokenId;
     }
-
+    /**
+     * Mint a batch of cards and assign them to an address
+     * @param to  The address to mint the cards to
+     * @param collectionId The collection ID
+     * @param pokemonIds The list of pokemon IDs
+     */
     function mintAndAssignBatch(address to, uint256 collectionId, string[] memory pokemonIds)
         public
         returns (uint256[] memory)
@@ -76,7 +85,6 @@ contract CardFactory is ERC721, ERC721Enumerable, Ownable {
             _mint(to, tokenIds[i]);
             setApprovalForAll(address(this), true);
             _cards[tokenIds[i]] = Card(tokenIds[i], collectionId, pokemonIds[i]);
-            _pokemonIdToTokenId[pokemonIds[i]] = tokenIds[i];
         }
         return tokenIds;
     }
@@ -87,7 +95,10 @@ contract CardFactory is ERC721, ERC721Enumerable, Ownable {
         _burn(tokenId);
         delete _cards[tokenId];
     }
-
+    /**
+     * Get all the cards owned by an address
+     * @param owner  The address to query
+     */
     function getOwnedCards(address owner) 
         public 
         view 
@@ -99,14 +110,27 @@ contract CardFactory is ERC721, ERC721Enumerable, Ownable {
         }
         return ownedTokens;
     }
-
-    function getOwners(string[] memory pokemonIds) 
+    /**
+     * Get the collection ID for a token
+     * @param pokemonId  get all the token owners for a pokemon
+     */
+    function getOwners(string memory pokemonId) 
         public 
         view 
         returns (address[] memory) {
-        address[] memory owners = new address[](pokemonIds.length);
-        for (uint256 i = 0; i < pokemonIds.length; i++) {
-            owners[i] = ownerOf(_pokemonIdToTokenId[pokemonIds[i]]);
+        uint count = 0;
+        for (uint256 i = 0; i < _nextTokenId; i++) {
+            if (keccak256(abi.encodePacked(_cards[i].pokemonId)) == keccak256(abi.encodePacked(pokemonId))) {
+                count++;
+            }
+        }
+        address[] memory owners = new address[](count);
+        uint index = 0;
+        for (uint256 i = 0; i < _nextTokenId; i++) {
+            if (keccak256(abi.encodePacked(_cards[i].pokemonId)) == keccak256(abi.encodePacked(pokemonId))) {
+                owners[index] = ownerOf(i);
+                index++;
+            }
         }
         return owners;
     }

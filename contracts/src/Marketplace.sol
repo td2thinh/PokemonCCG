@@ -3,9 +3,7 @@ pragma solidity ^0.8.0;
 import "./CollectionManager.sol";
 
 contract Marketplace is CollectionManager {
-
-     // Marketplace
-     struct Listing {
+    struct Listing {
         uint256 price;
         address seller;
         string pokemonId;
@@ -16,6 +14,11 @@ contract Marketplace is CollectionManager {
     mapping(uint => Listing) private listings;
     mapping(address => uint256) private totalEarned;
 
+    /**
+     * Put a token up for sale
+     * @param tokenId   The ID of the token to list
+     * @param price    The price to list the token for
+     */
     function listItem(
         uint256 tokenId,
         uint256 price
@@ -30,6 +33,10 @@ contract Marketplace is CollectionManager {
         listings[tokenId] = Listing(price, msg.sender, getCard(tokenId).pokemonId);
     }
 
+    /**
+     * Cancel a listing
+     * @param tokenId   The ID of the token to cancel the listing for
+     */
     function cancelListing(uint256 tokenId)
         external
     {
@@ -39,7 +46,10 @@ contract Marketplace is CollectionManager {
         // Clear listing
         delete (listings[tokenId]);
     }
-
+    /** 
+    * Buy a token that is up for sale
+    * @param tokenId   The ID of the token to buy
+    */
     function buyItem(uint256 tokenId)
         external
         payable
@@ -55,7 +65,11 @@ contract Marketplace is CollectionManager {
             require(success, "Refund failed");
         }
     }
-
+    /**
+     * Update the price of a listing
+     * @param tokenId   The ID of the token to update the listing for
+     * @param newPrice  The new price to update the listing to
+     */
     function updateListing(
         uint256 tokenId,
         uint256 newPrice
@@ -65,7 +79,9 @@ contract Marketplace is CollectionManager {
         require(listings[tokenId].seller == msg.sender, "Not the seller");
         listings[tokenId].price = newPrice;
     }
-
+    /**
+     * Withdraw earned funds
+     */
     function withdrawEarned() 
         external 
     {
@@ -74,8 +90,10 @@ contract Marketplace is CollectionManager {
         (bool success, ) = payable(msg.sender).call{value: earned}("");
         require(success, "Transfer failed");
     }
-
-
+    /**
+     * Get the listing for a token
+     * @param tokenId   The ID of the token to get the listing for
+     */
     function getListing(uint256 tokenId)
         external
         view
@@ -83,14 +101,18 @@ contract Marketplace is CollectionManager {
     {
         return listings[tokenId];
     }
-
+    /**
+     * Get all listings
+     */
     function getEarned(address seller) 
         external 
         view 
         returns (uint256) {
         return totalEarned[seller];
     }
-
+    /**
+     * Get all listings
+     */
     function getAllListings() 
         external 
         view 

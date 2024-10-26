@@ -1,61 +1,107 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import * as main from '@/lib/main';
-import { Button } from '@mui/material';
-import { PokemonTCG } from 'pokemon-tcg-sdk-typescript'
+import { Button, Typography } from '@mui/material';
+import { useWalletContext } from '@/contexts/WalletContext';
+import { PokemonCard } from '@/interfaces/card';
+import { ethers } from 'ethers';
+import Skeleton from "react-loading-skeleton";
+import useStyles from "@/components/CardsStyles";
+import axios from 'axios';
+import { Img } from 'react-image';
 
-const getAllCards = async (contract: main.Main, wallet: string) => {
-    const cards = await contract.getOwnedCards(wallet)
-        .then((cards: any) => {
-            contract.getMultipleCards(cards)
-                .then((cards: any) => {
-                    console.log(cards)
-                })
-        })
-}
-const handleBuyBooster = async (contract: main.Main, boosterId: string, to: string) => {
-    const tx = await contract.buyBooster(boosterId, to, { value: 600000000000 });
-    console.log('Transaction:', tx);
-}
-const handleGetBooster = async (contract: main.Main, boosterId: string) => {
-    const owner = await contract.getBooster(boosterId);
-    console.log('Owner:', owner);
-}
-const handleRedeemBooster = async (contract: main.Main, boosterId: string) => {
-    const tx = await contract.redeemBooster(boosterId);
-    console.log('Transaction:', tx);
+// uint tokenId;      // token ID
+// uint collectionId;  // collection ID
+// string pokemonId;   // pokemon ID
+
+interface CardTokenProps {
+    tokenId: number;
+    collectionId: number;
+    pokemonId: string;
+    card: PokemonCard;
 }
 
-const handleGetBoosterOwner = async (contract: main.Main, boosterId: string) => {
-    const owner = await contract.getOwnerForBooster(boosterId);
-    console.log('Owner:', owner);
-}
 
-function Collection({ wallet, contract }: { wallet: string | undefined, contract: main.Main }) {
+function Collection() {
+    const wallet = useWalletContext();
+    const [tokens, setTokens] = useState<CardTokenProps[]>([]);
 
-    // useEffect(() => {
-    //     getAllCards(contract, wallet).then((cards) => {
-    //         console.log(cards);
-    //     }
-    //     );
-    // }, [contract]);
+
+    useEffect(() => {
+        const fetchTokens = async () => {
+            if (!wallet.contract) {
+                console.error("Wallet contract is not initialized");
+                return;
+            }
+            await wallet.contract.getOwnedCards(wallet.details?.account)
+                .then(async (tokens: any) => {
+                    await wallet.contract.getMultipleCards(tokens)
+                        .then((cards: any) => {
+                            cards.forEach(async (card: any) => {
+                                await axios.get(`https://api.pokemontcg.io/v2/cards/${card.pokemonId}`)
+                                    .then((cardData: any) => {
+                                        const pokemonCard: PokemonCard = {
+                                            name: cardData.data.data.name,
+                                            id: cardData.data.data.id,
+                                            image: cardData.data.data.images.small,
+                                            text: cardData.data.data.text,
+                                        };
+                                        setTokens((prevTokens) => [...prevTokens, {
+                                            tokenId: card.tokenId,
+                                            collectionId: card.collectionId,
+                                            pokemonId: card.pokemonId,
+                                            card: pokemonCard,
+                                        }]);
+                                    }
+                                    );
+                            });
+                        });
+                });
+        }
+        fetchTokens();
+    }, []);
+
+    const [showModal, setShowModal] = useState(false);
+    const [clickedToken, setClickedToken] = useState<CardTokenProps | null>(null);
+    const classes = useStyles();
 
     return (
         <>
+            <Typography
+                variant="h2"
+                align="center"
+                sx={{
+                    fontWeight: 700,
+                    letterSpacing: '.2rem',
+                    color: "rebeccapurple",
+                    paddingBottom: '20px',
+                    paddingTop: '1.3em'
 
-            <Button variant="contained" color="primary" onClick={() => handleBuyBooster(contract, '0', wallet || '')}>
-                Buy Booster
-            </Button>
-            <Button variant="contained" color="primary" onClick={() => handleGetBooster(contract, '0')}>
-                Get Booster
-            </Button>
-            <Button variant="contained" color="primary" onClick={() => handleRedeemBooster(contract, '0')}>
-                Redeem Booster
-            </Button>
-            <Button variant="contained" color="primary" onClick={() => handleGetBoosterOwner(contract, '0')}>
-                Get Booster Owner
-            </Button>
+                }}
+            >
+                Your Cards
+            </Typography>
+            <div>
+                <ul className={classes.ul}>
+                    {tokens.map((token) => (
+                        <li key={token.tokenId} className={classes.li}>
+                            <Img
+                                onClick={() => {
+                                    setShowModal(true);
+                                    setClickedToken(token);
+                                }}
+                                src={token.card.image}
+                                loader={<Skeleton />}
+                                alt={token.card.name}
+                                className={classes.img}
+                            />
+                        </li>
+                    ))}
+                </ul>
+            </div>
+
         </>
     )
 }
+
 
 export default Collection

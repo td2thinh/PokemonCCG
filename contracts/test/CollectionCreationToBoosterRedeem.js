@@ -1,6 +1,7 @@
 const { expect } = require("chai");
+
 async function setup() {
-    const [owner, addr1, addr2] = await ethers.getSigners();
+    const [owner, addr1, addr2] = await hre.ethers.getSigners();
 
     // Get the contract factory
     const Main = await ethers.getContractFactory("Main");
@@ -40,6 +41,7 @@ async function setup() {
     await boosterTx.wait();
     return { main, owner, addr1, addr2 };
 }
+
 describe("CollectionToBoosterRedeem", function () {
     let main, owner, addr1, addr2;
 
@@ -51,41 +53,34 @@ describe("CollectionToBoosterRedeem", function () {
         addr2 = setupData.addr2;
     });
     it("Collection 1 should be created with 3 pokemons", async function () {
-        const { main, owner, addr1, addr2 } = await setup();
         const collection = await main.getCollection(0);
         expect(collection.name).to.equal("Collection 1");
         expect(collection.imageUrl).to.equal("https://www.collection1.com");
         expect(collection.pokemonIds.length).to.equal(3);
     });
     it("Should mint and assign Poke1 to 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", async function () {
-        const { main, owner, addr1, addr2 } = await setup();
         const owners = await main.getOwners([0]);
         expect(owners[0]).to.equal("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");
     });
     it("Should create Booster 1 with 2 pokemons", async function () {
-        const { main, owner, addr1, addr2 } = await setup();
         const booster = await main.getBooster(0);
         expect(booster.name).to.equal("Booster 1");
         expect(booster.imageUrl).to.equal("https://www.booster1.com");
         expect(booster.pokemonIds.length).to.equal(2);
     });
     it("addr1 should buy 1 booster from owner", async function () {
-        const { main, owner, addr1, addr2 } = await setup();
         const beforeAddress = await main.getOwnerForBooster(0);
-        console.log("beforeAddress", beforeAddress);
-        console.log("addr1", addr1.address);
-        console.log("addr2", addr2.address);
         const buyTx = await main.buyBooster(0, addr1.address, { value: 600000000000 });
         await buyTx.wait();
         const afterAddress = await main.getOwnerForBooster(0);
-        console.log("afterAddress", afterAddress);
         expect(beforeAddress).to.not.equal(afterAddress);
     });
-    it("Should now have 3 pokemons in the wallet", async function () {
-        const { main, owner, addr1, addr2 } = await setup();
-        const redeemTx = await main.redeemBooster(0);
+    it("Should buy one booster and open to get 2 pokemons in the wallet", async function () {
+        const buyTx = await main.connect(addr1).buyBooster(0, addr1.address, { value: 600000000000 });
+        await buyTx.wait();
+        const redeemTx = await main.connect(addr1).redeemBooster(0)
         await redeemTx.wait();
-        const pokemons = await main.getOwnedCards("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");
+        const pokemons = await main.getOwnedCards(addr1.address);
         expect(pokemons.length).to.equal(2);
     });
 

@@ -4,6 +4,7 @@ import useStyles from "./createBosterModalStyle";
 interface CreateBoosterModalProps {
   handleCloseModal: () => void;
   handleCreateBooster: (boosterData: {
+    name: string;
     imageUrl: string;
     cardCount: number;
     collectionId: string;
@@ -18,6 +19,7 @@ const CreateBoosterModal: React.FC<CreateBoosterModalProps> = ({
   const classes = useStyles();
 
   // Champs pour les données du booster
+  const [name, setName] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [cardCount, setCardCount] = useState(0);
   const [collectionId, setCollectionId] = useState("");
@@ -29,9 +31,10 @@ const CreateBoosterModal: React.FC<CreateBoosterModalProps> = ({
       alert("Please fill in all fields correctly.");
       return;
     }
-    
+
     // Envoi des données du booster
     handleCreateBooster({
+      name,
       imageUrl,
       cardCount,
       collectionId,
@@ -44,6 +47,15 @@ const CreateBoosterModal: React.FC<CreateBoosterModalProps> = ({
     <div className={classes.overlay}>
       <div className={classes.modal}>
         <h2>Create a Booster</h2>
+        <div className={classes.formGroup}>
+          <label htmlFor="name">Name</label>
+          <input
+            type="text"
+            id="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </div>
         <div className={classes.formGroup}>
           <label htmlFor="imageUrl">Image URL</label>
           <input
@@ -91,7 +103,7 @@ const CreateBoosterModal: React.FC<CreateBoosterModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 

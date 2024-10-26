@@ -13,6 +13,65 @@ const deployer: DeployFunction = async hre => {
     log: true,
   })
   const mainAddress = mainDeployment.address
+  const mainContract = await hre.ethers.getContractAt('Main', mainAddress)
+  await mainContract.deployed()
+  const owner = await hre.ethers.getSigner(deployer)
+  await mainContract
+    .connect(owner)
+    .createCollection(
+      'Base Set',
+      'https://www.pokecardex.com//assets/images/sets/BS/decks/Decouverte.png',
+      10,
+      [
+        'base1-1',
+        'base1-2',
+        'base1-3',
+        'base1-4',
+        'base1-5',
+        'base1-6',
+        'base1-7',
+        'base1-8',
+        'base1-9',
+        'base1-10',
+      ]
+    )
+
+  await mainContract
+    .connect(owner)
+    .createBooster(
+      'Base Set Booster',
+      'https://www.pokecardex.com//assets/images/sets/BS/boosters/340px-Set_Base_Charizard_FR.jpg',
+      0,
+      3,
+      hre.ethers.utils.parseEther('0.1')
+    )
+  await mainContract
+    .connect(owner)
+    .createBooster(
+      'Base Set Booster',
+      'https://www.pokecardex.com//assets/images/sets/BS/boosters/344px-Set_Base_Venusaur_FR.jpg',
+      0,
+      3,
+      hre.ethers.utils.parseEther('0.1')
+    )
+  await mainContract
+    .connect(owner)
+    .createBooster(
+      'Base Set Booster',
+      'https://www.pokecardex.com//assets/images/sets/BS/boosters/337px-Set_Base_Blastoise_FR.jpg',
+      0,
+      3,
+      hre.ethers.utils.parseEther('0.1')
+    )
+  await mainContract
+    .connect(owner)
+    .mintAndAssign('0xcd3B766CCDd6AE721141F452C550Ca635964ce71', 0, 'base1-1')
+  const myAddress = await hre.ethers.getSigner(
+    '0xcd3B766CCDd6AE721141F452C550Ca635964ce71'
+  )
+  await mainContract.connect(myAddress).buyBooster(0, myAddress.address, {
+    value: hre.ethers.utils.parseEther('0.1'),
+  })
   console.log('Main deployed at:', mainAddress)
 }
 
