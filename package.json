@@ -17,6 +17,9 @@
     "hardhat": "^2.22.13"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^5.0.2"
+    "@openzeppelin/contracts": "^5.0.2",
+    "react-image": "^4.1.0",
+    "react-jss": "^10.10.0",
+    "react-loading-skeleton": "^3.5.0"
   }
 }

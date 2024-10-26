@@ -1,75 +1,95 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import styles from './styles.module.css'
-import * as ethereum from '@/lib/ethereum'
-import * as main from '@/lib/main'
+import { useEffect, useState } from 'react';
+import styles from './styles.module.css';
+import NavBar from './components/NavBar';
+import * as main from '@/lib/main';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import ManagerCards from './pages/Owner/ManagerCards';
+import FactoryPage from './pages/Owner/Factory';
+import Marketplace from './pages/User/Marketplace';
+import ManagerCard from './pages/Owner/ManagerCard';
+import CollectionUser from './pages/User/Collection';
+import BoostersPage from './pages/Owner/BoostersPage';
+import BoosterDetails from './pages/User/BoosterDetailsPage';
+import BoosterUser from './pages/User/Boosters';
+import BoosterStore from './pages/User/Store';
+import { WalletProvider, useWalletContext } from './contexts/WalletContext';
 
-type Canceler = () => void
-const useAffect = (
-  asyncEffect: () => Promise<Canceler | void>,
-  dependencies: any[] = []
-) => {
+const userPages = [
+  { name: 'Cards', link: '/cards' },
+  { name: 'Boosters', link: '/booster' },
+  { name: 'Store', link: '/store' },
+  { name: 'Marketplace', link: '/marketplace' },
+];
 
-  const cancelerRef = useRef<Canceler | void>()
+const ownerPages = [
+  { name: 'Factory', link: '/factory' },
+  { name: 'Booster', link: '/booster' },
+];
+
+const getDeployerAddress = async (contract: main.Main) => {
+  const deployerAddress = await contract.getDeployer();
+  return deployerAddress;
+};
+
+const AppContent = () => {
+  const wallet = useWalletContext();
+  const [isOwner, setIsOwner] = useState<boolean>(false);
+
   useEffect(() => {
-    asyncEffect()
-      .then(canceler => (cancelerRef.current = canceler))
-      .catch(error => console.warn('Uncatched error', error))
-    return () => {
-      if (cancelerRef.current) {
-        cancelerRef.current()
-        cancelerRef.current = undefined
-      }
+    if (wallet.contract) {
+      getDeployerAddress(wallet.contract).then((deployerAddress) => {
+        setIsOwner(wallet.details?.account == deployerAddress);
+      });
     }
-  }, dependencies)
-}
 
-const useWallet = () => {
-  const [details, setDetails] = useState<ethereum.Details>()
-  const [contract, setContract] = useState<main.Main>()
-  useAffect(async () => {
-    const details_ = await ethereum.connect('metamask')
-    if (!details_) return
-    setDetails(details_)
-    const contract_ = await main.init(details_)
-    if (!contract_) return
-    setContract(contract_)
-  }, [])
-  return useMemo(() => {
-    if (!details || !contract) return
-    return { details, contract }
-  }, [details, contract])
-}
+  }, [wallet.contract]);
 
-export const App = () => {
-  const wallet = useWallet()
-
-  useEffect(() => {
-    console.log("New  Created:", name, "with card count:");
-
-    if (!wallet || !wallet.contract) return; // Assurez-vous que le portefeuille et le contrat sont disponibles
-
-    const { contract } = wallet;
-
-    // Écoute l'événement "CollectionCreated"
-    contract.on("CollectionCreated", (name: string, cardCount: number) => {
-      console.log("New truc Created:", name, "with card count:", cardCount.toString());
-      // Vous pouvez aussi afficher un message dans l'interface si nécessaire
-      // alert(`New Collection Created: ${name} with card count: ${cardCount.toString()}`);
-    });
-
-    console.log("Listening for CollectionCreated events...");
-
-    // Fonction de nettoyage pour éviter les fuites de mémoire
-    // return () => {
-    //   contract.off("CollectionCreated"); // Déconnexion de l'événement
-    // };
-  }, [wallet]); // Dépendance sur le portefeuille
+  if (!wallet.isConnected) {
+    return (
+      <BrowserRouter>
+        <NavBar pages={userPages} />
+        <div className={styles.container}>
+          <h1>Connect Wallet</h1>
+          <button onClick={wallet.connectWallet}>Connect Wallet</button>
+        </div>
+      </BrowserRouter>
+    );
+  }
 
 
   return (
-    <div className={styles.body}>
-      <h1>Welcome to Pokémon TCG</h1>
-      
+    <div className={styles.container}>
+      <BrowserRouter>
+        <NavBar pages={isOwner ? ownerPages : userPages} />
+        <Routes>
+          {isOwner ? (
+            <>
+              <Route path="/booster" element={<BoostersPage isOwner={isOwner} />} />
+              <Route path="/booster/:id" element={<BoosterDetails isOwner={isOwner} />} />
+              <Route path="/factory" element={<FactoryPage isOwner={isOwner} />} />
+              <Route path="/factory/:ClId" element={<ManagerCards isOwner={isOwner} />} />
+              <Route path="/factory/:ClId/:CrId" element={<ManagerCard isOwner={isOwner} />} />
+              <Route path='/' element={<FactoryPage isOwner={isOwner} />} />
+            </>
+          ) : (
+            <>
+              <Route path="/marketplace" element={<Marketplace />} />
+              <Route path="/store" element={<BoosterStore />} />
+              <Route path="/" element={<CollectionUser />} />
+              <Route path="/cards" element={<CollectionUser />} />
+              <Route path="/booster" element={<BoosterUser />} />
+            </>
+          )}
+        </Routes>
+      </BrowserRouter>
     </div>
-  )
-}
+  );
+};
+
+export const App = () => {
+  return (
+    <WalletProvider>
+      <AppContent />
+    </WalletProvider>
+  );
+};

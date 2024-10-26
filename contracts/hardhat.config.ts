@@ -10,10 +10,38 @@ import 'hardhat-abi-exporter'
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 const config: HardhatUserConfig = {
-  solidity: '0.8.20',
+  solidity: {
+    version: '0.8.20', // any version you want
+    settings: {
+      viaIR: true,
+      optimizer: {
+        enabled: true,
+        details: {
+          yulDetails: {
+            optimizerSteps: 'u',
+          },
+        },
+      },
+    },
+  },
   paths: {
     deploy: './deploy',
     sources: './src',
+  },
+  networks: {
+    hardhat: {
+      mining: {
+        auto: true,
+        interval: 0, // Mine blocks as fast as possible
+        mempool: {
+          order: 'priority', // Process higher gas price txs first
+        },
+      },
+      // Increase block gas limit if you have complex transactions
+      blockGasLimit: 30000000,
+      // Allow parallel transaction processing
+      allowUnlimitedContractSize: true,
+    },
   },
   namedAccounts: {
     deployer: { default: 0 },
