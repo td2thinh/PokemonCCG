@@ -16,6 +16,10 @@ const deployer: DeployFunction = async hre => {
   const mainContract = await hre.ethers.getContractAt('Main', mainAddress)
   await mainContract.deployed()
   const owner = await hre.ethers.getSigner(deployer)
+  await owner.sendTransaction({
+    to: mainAddress,
+    value: hre.ethers.utils.parseEther('100'),
+  })
   await mainContract
     .connect(owner)
     .createCollection(

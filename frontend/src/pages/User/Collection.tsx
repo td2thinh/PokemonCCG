@@ -84,7 +84,7 @@ function Collection() {
     return (
         <>
             <Typography
-                variant="h4"
+                variant="h2"
                 align="center"
                 sx={{
                     fontWeight: 700,

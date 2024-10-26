@@ -43,11 +43,12 @@ function Marketplace() {
         // Met à jour l'affichage du bouton "Encaisser" en fonction de la valeur du gain
         const fetchGain = async () => {
             const rawGain = await wallet.contract.getEarned(wallet.details?.account);
-            if (ethers.BigNumber.from(rawGain).toNumber() > 0) {
-                setGain(ethers.utils.formatEther(rawGain));
+            let gainInEther = ethers.utils.formatEther(rawGain);
+            if (gainInEther == "0.0") {
+                setGain("0");
             }
             else {
-                setGain("0");
+                setGain(gainInEther);
             }
         }
         fetchGain();
